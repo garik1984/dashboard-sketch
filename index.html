@@ -120,6 +120,8 @@ a{color:var(--accent)}
 .plane{left:56px;top:40px}
 /* groups by module */
 [hidden]{display:none!important}
+.shead.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.shead.on .cnt,.shead.on .dd{color:var(--bg)}
 .shead .dd{color:var(--faint);transition:transform .15s}
 .shead[aria-expanded="false"] .dd{transform:rotate(-90deg)}
 .shead .cnt{margin-left:auto}
@@ -357,7 +359,7 @@ a{color:var(--accent)}
   function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
   var $ = function(id){ return document.getElementById(id); };
   function bucket(store, p, m){ store[p] = store[p] || {}; return store[p][m] = store[p][m] || []; }
-  function total(store, p){ return st.mods[p].reduce(function(a, m){ return a + bucket(store, p, m).length; }, 0); }
+  function total(store, p){ return st.mods[p].reduce(function(a, m){ return a + bucket(store, p, m).length; }, bucket(store, p, 'g').length); }
   var CHEV = '<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
 
   function render(){
@@ -388,33 +390,45 @@ a{color:var(--accent)}
       mm.appendChild(b);
     });
 
-    // board (whole module board, or only ideas / notes of one plugin)
+    // board: whole module board | ideas/notes of one plugin | all ideas/notes (m === 'all')
     var v = st.view || {kind:'board'};
-    if (v.kind !== 'board' && active.indexOf(v.m) < 0) v = st.view = {kind:'board'};
-    var list;
+    if (v.kind !== 'board' && v.m !== 'all' && active.indexOf(v.m) < 0) v = st.view = {kind:'board'};
+    var entries = [];  // {c, mi, kx, ky}
     if (v.kind === 'board') {
-      list = bucket(st.board, st.p, st.m);
+      bucket(st.board, st.p, st.m).forEach(function(c){ entries.push({c:c, mi:st.m, kx:'x', ky:'y'}); });
       $('btitle').textContent = 'Дошка · ' + M[st.m].name;
     } else {
-      list = bucket(v.kind === 'ideas' ? st.ideas : st.notes, st.p, v.m);
-      list.forEach(function(it, i){ if (it.x == null) { it.x = 40 + (i % 3) * 300; it.y = 40 + Math.floor(i / 3) * 200; } });
-      $('btitle').textContent = (v.kind === 'ideas' ? 'Ідеї · ' : 'Нотатки · ') + M[v.m].name;
+      var store = v.kind === 'ideas' ? st.ideas : st.notes;
+      var mods = v.m === 'all' ? active.concat(['g']) : [v.m];
+      var kx = v.m === 'all' ? 'ax' : 'x', ky = v.m === 'all' ? 'ay' : 'y';
+      mods.forEach(function(mi){ bucket(store, st.p, mi).forEach(function(c){ entries.push({c:c, mi:mi, kx:kx, ky:ky}); }); });
+      var placed = entries.filter(function(e){ return e.c[e.kx] != null; });
+      var baseY = placed.length ? placed.reduce(function(m, e){ return Math.max(m, e.c[e.ky]); }, 0) + 200 : 40, k = 0;
+      entries.forEach(function(e){ if (e.c[e.kx] == null) { e.c[e.kx] = 40 + (k % 3) * 300; e.c[e.ky] = baseY + Math.floor(k / 3) * 200; k++; } });
+      $('btitle').textContent = v.m === 'all'
+        ? (v.kind === 'ideas' ? 'Усі ідеї' : 'Усі нотатки')
+        : (v.kind === 'ideas' ? 'Ідеї · ' : 'Нотатки · ') + M[v.m].name;
     }
     $('viewreset').hidden = v.kind === 'board';
     var plane = $('plane'); plane.innerHTML = '';
-    if (!list.length) plane.appendChild(el('p', {'class':'empty','style':'position:absolute;left:40px;top:40px;margin:0'},
-      v.kind === 'ideas' ? 'У цьому плагіні ще немає ідей. Натисніть «+» у кутку дошки.' : v.kind === 'notes' ? 'У цьому плагіні ще немає нотаток. Натисніть «+» у кутку дошки.' : 'Дошка порожня. Натисніть «+» у кутку.'));
-    list.forEach(function(c){
-      var html;
-      if (v.kind === 'ideas') html = '<span class="badge '+(c.s==='у тесті'?'b-test':'b-idea')+'">'+(c.s==='у тесті'?'Ідея · у тесті':'Ідея · нова')+'</span><h2>'+esc(c.t)+'</h2>'+(c.b?'<p>'+esc(c.b)+'</p>':'')+'<span class="meta mono">'+esc(M[v.m].name)+'</span>';
-      else if (v.kind === 'notes') html = '<span class="badge b-note">Нотатка</span><h2>'+esc(c.t)+'</h2>'+(c.b?'<p>'+esc(c.b)+'</p>':'')+'<span class="meta mono">'+esc(c.m)+'</span>';
+    if (!entries.length) plane.appendChild(el('p', {'class':'empty','style':'position:absolute;left:40px;top:40px;margin:0'},
+      v.kind === 'ideas' ? 'Тут ще немає ідей. Натисніть «+» у кутку дошки.' : v.kind === 'notes' ? 'Тут ще немає нотаток. Натисніть «+» у кутку дошки.' : 'Дошка порожня. Натисніть «+» у кутку.'));
+    function plug(mi){ return mi === 'g' ? '<span class="meta mono">Загальна</span>' : '<span class="meta mono" style="display:flex;align-items:center;gap:6px"><i style="width:8px;height:8px;border-radius:2px;display:block;background:'+M[mi].color+'"></i>'+esc(M[mi].name)+'</span>'; }
+    entries.forEach(function(e){
+      var c = e.c, html;
+      if (v.kind === 'ideas') html = '<span class="badge '+(c.s==='у тесті'?'b-test':'b-idea')+'">'+(c.s==='у тесті'?'Ідея · у тесті':'Ідея · нова')+'</span><h2>'+esc(c.t)+'</h2>'+(c.b?'<p>'+esc(c.b)+'</p>':'')+plug(e.mi);
+      else if (v.kind === 'notes') html = '<span class="badge b-note">Нотатка</span><h2>'+esc(c.t)+'</h2>'+(c.b?'<p>'+esc(c.b)+'</p>':'')+(v.m === 'all' ? plug(e.mi) : '')+'<span class="meta mono">'+esc(c.m)+'</span>';
       else html = '<span class="badge '+BADGE[c.s]+'">'+esc(c.s)+'</span><h2>'+esc(c.t)+'</h2>'+(c.b?'<p>'+esc(c.b)+'</p>':'')+'<span class="meta mono">'+esc(c.m)+'</span>';
-      var a = el('article', {'class':'card','style':'left:'+c.x+'px;top:'+c.y+'px'}, html);
-      drag(a, c);
+      var a = el('article', {'class':'card','style':'left:'+c[e.kx]+'px;top:'+c[e.ky]+'px'}, html);
+      drag(a, c, e.kx, e.ky);
       plane.appendChild(a);
     });
-    var tip = v.kind === 'ideas' ? 'Ідея · ' + M[v.m].name : v.kind === 'notes' ? 'Нотатка · ' + M[v.m].name : 'Загальна ідея';
+    var tip = v.kind === 'board' ? 'Загальна ідея'
+      : v.m === 'all' ? (v.kind === 'ideas' ? 'Загальна ідея' : 'Загальна нотатка')
+      : (v.kind === 'ideas' ? 'Ідея · ' : 'Нотатка · ') + M[v.m].name;
     $('addtip').textContent = tip; $('addcard').setAttribute('aria-label', 'Додати: ' + tip); $('addcard').title = 'Додати: ' + tip;
+    $('hIdeas').classList.toggle('on', v.kind === 'ideas' && v.m === 'all');
+    $('hNotes').classList.toggle('on', v.kind === 'notes' && v.m === 'all');
 
     // sidebar: groups by module
     $('cIdeas').textContent = total(st.ideas, st.p);
@@ -529,21 +543,25 @@ a{color:var(--accent)}
 
   function addItem(kind, mi){
     if (mi == null) mi = kind==='idea' ? st.gIdeas : st.gNotes;
-    if (st.mods[st.p].indexOf(mi) < 0) mi = st.m;
-    var t = prompt((kind==='idea' ? 'Нова ідея' : 'Нова нотатка') + ' · ' + M[mi].name + ':');
+    if (mi === 'all') mi = 'g';
+    if (mi !== 'g' && st.mods[st.p].indexOf(mi) < 0) mi = st.m;
+    var t = prompt((kind==='idea' ? 'Нова ідея' : 'Нова нотатка') + ' · ' + (mi === 'g' ? 'загальна' : M[mi].name) + ':');
     if (!t) return;
-    if (kind==='idea') { bucket(st.ideas, st.p, mi).push({t:t, s:'нова'}); st.openIdeas = true; st.gIdeas = mi; }
-    else { bucket(st.notes, st.p, mi).push({t:t, m:'щойно'}); st.openNotes = true; st.gNotes = mi; }
+    if (kind==='idea') { bucket(st.ideas, st.p, mi).push({t:t, s:'нова'}); st.openIdeas = true; if (mi !== 'g') st.gIdeas = mi; }
+    else { bucket(st.notes, st.p, mi).push({t:t, m:'щойно'}); st.openNotes = true; if (mi !== 'g') st.gNotes = mi; }
     save(); render();
+    setTimeout(function(){ var c = document.querySelector('.canvas'); if (c) c.scrollTo({top: c.scrollHeight, behavior: 'smooth'}); }, 50);
+    toast(mi === 'g' ? 'Додано як загальну' : 'Додано в «' + M[mi].name + '»');
   }
 
-  function drag(a, c){
+  function drag(a, c, kx, ky){
+    kx = kx || 'x'; ky = ky || 'y';
     var sx, sy, ox, oy, on = false;
     a.addEventListener('pointerdown', function(e){
       if (window.matchMedia('(max-width: 860px)').matches) return;
-      on = true; sx = e.clientX; sy = e.clientY; ox = c.x; oy = c.y; a.classList.add('drag'); a.setPointerCapture(e.pointerId);
+      on = true; sx = e.clientX; sy = e.clientY; ox = c[kx]; oy = c[ky]; a.classList.add('drag'); a.setPointerCapture(e.pointerId);
     });
-    a.addEventListener('pointermove', function(e){ if (!on) return; c.x = Math.max(0, ox + e.clientX - sx); c.y = Math.max(0, oy + e.clientY - sy); a.style.left = c.x+'px'; a.style.top = c.y+'px'; });
+    a.addEventListener('pointermove', function(e){ if (!on) return; c[kx] = Math.max(0, ox + e.clientX - sx); c[ky] = Math.max(0, oy + e.clientY - sy); a.style.left = c[kx]+'px'; a.style.top = c[ky]+'px'; });
     a.addEventListener('pointerup', function(){ if (!on) return; on = false; a.classList.remove('drag'); save(); });
   }
 
@@ -553,8 +571,15 @@ a{color:var(--accent)}
     t.textContent = msg; t.style.display = 'block'; clearTimeout(toastT); toastT = setTimeout(function(){ t.style.display = 'none'; }, 2200);
   }
 
-  $('hIdeas').onclick = function(){ st.openIdeas = st.openIdeas === false; save(); render(); };
-  $('hNotes').onclick = function(){ st.openNotes = st.openNotes === false; save(); render(); };
+  function headClick(kind, openKey){
+    var v = st.view || {};
+    var showing = v.kind === kind && v.m === 'all';
+    if (showing && st[openKey] !== false) st[openKey] = false;      // 2nd click: collapse list
+    else { st[openKey] = true; st.view = {kind: kind, m: 'all'}; st.tab = 'board'; }
+    save(); render();
+  }
+  $('hIdeas').onclick = function(){ headClick('ideas', 'openIdeas'); };
+  $('hNotes').onclick = function(){ headClick('notes', 'openNotes'); };
   $('q').oninput = function(){ renderSearch('q','mres'); };
   $('q2').oninput = function(){ renderSearch('q2','mres2'); };
   $('addmod').onclick = function(){ st.tab = 'modules'; save(); render(); $('q').focus(); };
