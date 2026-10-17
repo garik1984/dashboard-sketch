@@ -102,6 +102,7 @@ a{color:var(--accent)}
 .b-idea{background:var(--line2);color:var(--muted)}
 .b-test{background:var(--blue-bg);color:var(--blue)}
 .b-none{background:var(--orange-bg);color:var(--orange-ink)}
+.b-note{background:var(--blue-bg);color:var(--blue)}
 .b-ok{background:var(--accent-bg);color:var(--accent)}
 
 /* agent sheet */
@@ -113,6 +114,9 @@ a{color:var(--accent)}
 
 /* groups by module */
 [hidden]{display:none!important}
+.shead .dd{color:var(--faint);transition:transform .15s}
+.shead[aria-expanded="false"] .dd{transform:rotate(-90deg)}
+.shead .cnt{margin-left:auto}
 .side > *{flex-shrink:0}
 .mview > .madd{flex:none}
 .groups{display:flex;flex-direction:column;gap:2px;max-height:146px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
@@ -206,12 +210,12 @@ a{color:var(--accent)}
     <aside class="side">
       <button class="shead" id="hIdeas" aria-expanded="true">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/></svg>
-        Ідеї<span class="cnt" id="cIdeas"></span>
+        Ідеї<span class="cnt" id="cIdeas"></span><svg class="dd" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
       </button>
       <div class="slist" id="sIdeas"></div>
       <button class="shead" id="hNotes" aria-expanded="false">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 4h10l4 4v12H5z"/><path d="M9 12h6M9 16h4"/></svg>
-        Нотатки<span class="cnt" id="cNotes"></span>
+        Нотатки<span class="cnt" id="cNotes"></span><svg class="dd" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
       </button>
       <div class="slist" id="sNotes" hidden></div>
       <div class="msearch">
@@ -226,7 +230,7 @@ a{color:var(--accent)}
 
     <main class="main">
       <div class="mainhead">
-        <h1 id="btitle"></h1>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><h1 id="btitle"></h1><button class="btn" id="viewreset" hidden style="height:32px;font-size:13px">× Уся дошка</button></div>
         <div style="display:flex;gap:8px">
           <button class="btn" id="addcard">+ Картка</button>
           <button class="btn dark" id="askd">Спитати агента</button>
@@ -357,7 +361,7 @@ a{color:var(--accent)}
     var pr = $('projects'); pr.innerHTML = '';
     P.forEach(function(p, i){
       var b = el('button', {'class':'ptab','aria-current': String(i===st.p)}, '<span class="pdot" style="background:'+p.color+'">'+p.letter+'</span>'+esc(p.name));
-      b.onclick = function(){ st.p = i; st.m = st.mods[i][0]; st.gIdeas = st.m; st.gNotes = st.m; save(); render(); };
+      b.onclick = function(){ st.p = i; st.view = {kind:'board'}; st.m = st.mods[i][0]; st.gIdeas = st.m; st.gNotes = st.m; save(); render(); };
       pr.appendChild(b);
     });
     var add = el('button', {'class':'addbtn','aria-label':'Новий проєкт'}, '+');
@@ -371,21 +375,36 @@ a{color:var(--accent)}
       var m = M[mi], on = mi === st.m;
       var b = el('button', {'class':'mtab','aria-current': String(on)}, '<i style="background:'+m.color+'"></i>'+m.name);
       if (on) { b.style.borderColor = m.color; b.style.background = m.bg; }
-      b.onclick = function(){ st.m = mi; st.gIdeas = mi; st.gNotes = mi; st.tab = 'board'; save(); render(); };
+      b.onclick = function(){ st.m = mi; st.gIdeas = mi; st.gNotes = mi; st.view = {kind:'board'}; st.tab = 'board'; save(); render(); };
       mm.appendChild(b);
     });
 
-    // board
-    var list = bucket(st.board, st.p, st.m);
-    $('btitle').textContent = 'Дошка · ' + M[st.m].name;
+    // board (whole module board, or only ideas / notes of one plugin)
+    var v = st.view || {kind:'board'};
+    if (v.kind !== 'board' && active.indexOf(v.m) < 0) v = st.view = {kind:'board'};
+    var list;
+    if (v.kind === 'board') {
+      list = bucket(st.board, st.p, st.m);
+      $('btitle').textContent = 'Дошка · ' + M[st.m].name;
+    } else {
+      list = bucket(v.kind === 'ideas' ? st.ideas : st.notes, st.p, v.m);
+      list.forEach(function(it, i){ if (it.x == null) { it.x = 40 + (i % 3) * 300; it.y = 40 + Math.floor(i / 3) * 200; } });
+      $('btitle').textContent = (v.kind === 'ideas' ? 'Ідеї · ' : 'Нотатки · ') + M[v.m].name;
+    }
+    $('viewreset').hidden = v.kind === 'board';
     var plane = $('plane'); plane.innerHTML = '';
-    if (!list.length) plane.appendChild(el('p', {'class':'empty','style':'position:absolute;left:40px;top:40px;margin:0'}, 'Дошка порожня. Додайте картку або перенесіть ідею.'));
+    if (!list.length) plane.appendChild(el('p', {'class':'empty','style':'position:absolute;left:40px;top:40px;margin:0'},
+      v.kind === 'ideas' ? 'У цьому плагіні ще немає ідей. Натисніть «+ Ідея».' : v.kind === 'notes' ? 'У цьому плагіні ще немає нотаток. Натисніть «+ Нотатка».' : 'Дошка порожня. Додайте картку.'));
     list.forEach(function(c){
-      var a = el('article', {'class':'card','style':'left:'+c.x+'px;top:'+c.y+'px'},
-        '<span class="badge '+BADGE[c.s]+'">'+esc(c.s)+'</span><h2>'+esc(c.t)+'</h2>'+(c.b?'<p>'+esc(c.b)+'</p>':'')+'<span class="meta mono">'+esc(c.m)+'</span>');
+      var html;
+      if (v.kind === 'ideas') html = '<span class="badge '+(c.s==='у тесті'?'b-test':'b-idea')+'">'+(c.s==='у тесті'?'Ідея · у тесті':'Ідея · нова')+'</span><h2>'+esc(c.t)+'</h2>'+(c.b?'<p>'+esc(c.b)+'</p>':'')+'<span class="meta mono">'+esc(M[v.m].name)+'</span>';
+      else if (v.kind === 'notes') html = '<span class="badge b-note">Нотатка</span><h2>'+esc(c.t)+'</h2>'+(c.b?'<p>'+esc(c.b)+'</p>':'')+'<span class="meta mono">'+esc(c.m)+'</span>';
+      else html = '<span class="badge '+BADGE[c.s]+'">'+esc(c.s)+'</span><h2>'+esc(c.t)+'</h2>'+(c.b?'<p>'+esc(c.b)+'</p>':'')+'<span class="meta mono">'+esc(c.m)+'</span>';
+      var a = el('article', {'class':'card','style':'left:'+c.x+'px;top:'+c.y+'px'}, html);
       drag(a, c);
       plane.appendChild(a);
     });
+    $('addcard').textContent = v.kind === 'ideas' ? '+ Ідея' : v.kind === 'notes' ? '+ Нотатка' : '+ Картка';
 
     // sidebar: groups by module
     $('cIdeas').textContent = total(st.ideas, st.p);
@@ -428,36 +447,20 @@ a{color:var(--accent)}
 
   function sideGroup(boxId, kind){
     var store = kind === 'idea' ? st.ideas : st.notes;
-    var key = kind === 'idea' ? 'gIdeas' : 'gNotes';
+    var vk = kind === 'idea' ? 'ideas' : 'notes';
+    var v = st.view || {kind:'board'};
     var box = $(boxId); box.innerHTML = '';
     var active = st.mods[st.p];
-    var groups = el('div', {'class':'groups','role':'group','aria-label': kind==='idea' ? 'Ідеї за модулями' : 'Нотатки за модулями'});
+    var groups = el('div', {'class':'groups','role':'group','aria-label': kind==='idea' ? 'Ідеї за плагінами' : 'Нотатки за плагінами'});
     active.forEach(function(mi){
-      var on = st[key] === mi;
+      var on = v.kind === vk && v.m === mi;
       var b = el('button', {'class':'grow','aria-pressed': String(on)},
-        CHEV + '<i style="background:'+M[mi].color+'"></i>' + (kind==='idea'?'Ідеї · ':'Нотатки · ') + M[mi].name + '<span class="n">'+bucket(store, st.p, mi).length+'</span>');
-      b.onclick = function(){ st[key] = on ? -1 : mi; save(); render(); };
+        '<i style="background:'+M[mi].color+'"></i>' + M[mi].name + '<span class="n">'+bucket(store, st.p, mi).length+'</span>');
+      b.onclick = function(){ st.view = {kind: vk, m: mi}; st.m = mi; st.tab = 'board'; save(); render(); };
       groups.appendChild(b);
     });
     box.appendChild(groups);
     if (active.length > 3) box.appendChild(el('div', {'class':'scrollhint'}, 'ще ' + (active.length - 3) + ' — гортайте список ↕'));
-
-    if (active.indexOf(st[key]) >= 0) {
-      var mi = st[key];
-      var wrap = el('div', {'class':'gitems','style':'border-left-color:'+M[mi].color});
-      var items = bucket(store, st.p, mi);
-      if (!items.length) wrap.appendChild(el('div', {'class':'empty'}, 'Поки порожньо'));
-      items.forEach(function(it, idx){
-        var b = el(kind==='idea' ? 'button' : 'a', kind==='idea' ? {'class':'sitem','title':'Перенести на дошку'} : {'class':'sitem','href':'#'}, itemHTML(kind, it));
-        if (kind === 'idea') b.onclick = function(){ ideaToBoard(mi, idx); };
-        else b.onclick = function(e){ e.preventDefault(); };
-        wrap.appendChild(b);
-      });
-      var a = el('button', {'class':'sadd'}, (kind==='idea' ? '+ Ідея в «' : '+ Нотатка в «') + M[mi].name + '»');
-      a.onclick = function(){ addItem(kind, mi); };
-      wrap.appendChild(a);
-      box.appendChild(wrap);
-    }
   }
 
   function mobileGroup(chipsId, listId, kind){
@@ -519,8 +522,8 @@ a{color:var(--accent)}
     if (st.mods[st.p].indexOf(mi) < 0) mi = st.m;
     var t = prompt((kind==='idea' ? 'Нова ідея' : 'Нова нотатка') + ' · ' + M[mi].name + ':');
     if (!t) return;
-    if (kind==='idea') { bucket(st.ideas, st.p, mi).unshift({t:t, s:'нова'}); st.openIdeas = true; st.gIdeas = mi; }
-    else { bucket(st.notes, st.p, mi).unshift({t:t, m:'щойно'}); st.openNotes = true; st.gNotes = mi; }
+    if (kind==='idea') { bucket(st.ideas, st.p, mi).push({t:t, s:'нова'}); st.openIdeas = true; st.gIdeas = mi; }
+    else { bucket(st.notes, st.p, mi).push({t:t, m:'щойно'}); st.openNotes = true; st.gNotes = mi; }
     save(); render();
   }
 
@@ -545,7 +548,13 @@ a{color:var(--accent)}
   $('q').oninput = function(){ renderSearch('q','mres'); };
   $('q2').oninput = function(){ renderSearch('q2','mres2'); };
   $('addmod').onclick = function(){ st.tab = 'modules'; save(); render(); $('q').focus(); };
-  $('addcard').onclick = function(){ var t = prompt('Назва картки:'); if (!t) return; bucket(st.board, st.p, st.m).push({s:'Ідея',t:t,b:'',m:'щойно',x:60,y:60}); save(); render(); };
+  $('addcard').onclick = function(){
+    var v = st.view || {kind:'board'};
+    if (v.kind === 'ideas') return addItem('idea', v.m);
+    if (v.kind === 'notes') return addItem('note', v.m);
+    var t = prompt('Назва картки:'); if (!t) return; bucket(st.board, st.p, st.m).push({s:'Ідея',t:t,b:'',m:'щойно',x:60,y:60}); save(); render();
+  };
+  $('viewreset').onclick = function(){ st.view = {kind:'board'}; save(); render(); };
   document.querySelectorAll('[data-add]').forEach(function(b){ b.onclick = function(){ addItem(b.getAttribute('data-add')); }; });
   function openAgent(){ $('atext').textContent = AGENT[st.m] || AGENT[0]; $('agent').classList.add('open'); }
   $('askd').onclick = openAgent; $('askm').onclick = openAgent;
