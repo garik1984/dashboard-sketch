@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Кабінет · ескіз v2</title>
+<meta http-equiv="Cache-Control" content="no-cache">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -397,6 +398,7 @@ a{color:var(--accent)}
     $('btitle').textContent = v.kind === 'notes'
       ? (v.m === 'all' ? 'Усі нотатки' : 'Нотатки · ' + M[v.m].name)
       : (v.m === 'all' ? 'Дошка · усі ідеї' : 'Дошка · ' + M[v.m].name);
+    $('btitle').textContent += ' · ' + entries.length;
     $('viewreset').hidden = v.kind === 'ideas' && v.m === 'all';
 
     var plane = $('plane'); plane.innerHTML = '';
