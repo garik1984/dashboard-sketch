@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Кабінет · ескіз v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F3EF; --panel:#FFFFFF; --side:#F7F7F4; --ink:#15171A; --ink2:#33373D; --muted:#4A4F57; --faint:#6B7078; --line:#D6D9D1; --line2:#E4E6E0;
+  --accent:#0B6B52; --accent-bg:#E3EDE8; --blue:#2F5BD3; --blue-bg:#E7ECFA; --orange:#C2410C; --orange-bg:#FCE6D6; --orange-ink:#9A3412;
+  --top:#15171A; --top-chip:#2A2D31; --top-ink:#C5C9CE; --dot:#C9CCC4;
+}
+:root[data-theme="dark"]{
+  --bg:#111315; --panel:#1A1D20; --side:#16181B; --ink:#ECEDE8; --ink2:#D3D5D0; --muted:#A8ACB2; --faint:#8A8F96; --line:#2C3034; --line2:#24272B;
+  --accent:#4FBF95; --accent-bg:#17322A; --blue:#7FA0F0; --blue-bg:#1C2540; --orange:#F08A55; --orange-bg:#3A2418; --orange-ink:#F3A877;
+  --top:#0A0B0C; --top-chip:#202327; --top-ink:#A8ACB2; --dot:#2C3034;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#111315; --panel:#1A1D20; --side:#16181B; --ink:#ECEDE8; --ink2:#D3D5D0; --muted:#A8ACB2; --faint:#8A8F96; --line:#2C3034; --line2:#24272B;
+    --accent:#4FBF95; --accent-bg:#17322A; --blue:#7FA0F0; --blue-bg:#1C2540; --orange:#F08A55; --orange-bg:#3A2418; --orange-ink:#F3A877;
+    --top:#0A0B0C; --top-chip:#202327; --top-ink:#A8ACB2; --dot:#2C3034;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:'Onest',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button,input{font-family:inherit}
+button{cursor:pointer}
+a{color:var(--accent)}
+.mono{font-family:'JetBrains Mono',monospace}
+.disp{font-family:'Unbounded',sans-serif}
+.label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+
+.app{display:flex;flex-direction:column;height:100dvh;min-height:100vh}
+
+/* row 1: projects */
+.topbar{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--top);color:#F2F3EF}
+.brand{display:flex;align-items:center;gap:10px;margin-right:8px;flex:none}
+.logo{width:28px;height:28px;border-radius:7px;background:#0B6B52;display:grid;place-items:center}
+.brand span{font-family:'Unbounded',sans-serif;font-weight:700;font-size:15px}
+.topbar .label{color:#9FA4AB}
+.scroller{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;min-width:0}
+.scroller::-webkit-scrollbar{display:none}
+.ptab{flex:none;display:flex;align-items:center;gap:8px;height:38px;padding:0 14px 0 8px;border:0;border-radius:9px;background:var(--top-chip);color:var(--top-ink);font-size:14px;white-space:nowrap}
+.ptab[aria-current="true"]{background:#F2F3EF;color:#15171A;font-weight:600}
+.pdot{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;font-size:11px;font-weight:700;color:#fff}
+.addbtn{flex:none;width:38px;height:38px;border-radius:9px;border:1px dashed #4A4F57;background:transparent;color:#C5C9CE;font-size:18px}
+.topright{margin-left:auto;display:flex;align-items:center;gap:12px;flex:none}
+.conn{font-size:12px;color:#6FCFA7;display:flex;align-items:center;gap:6px}
+.conn i{width:8px;height:8px;border-radius:50%;background:#2E9E6B;display:block}
+.avatar{width:30px;height:30px;border-radius:50%;background:#F2F3EF;color:#15171A;display:grid;place-items:center;font-size:13px;font-weight:600}
+.iconbtn{width:36px;height:36px;border-radius:8px;border:1px solid #33373D;background:transparent;color:#C5C9CE;display:grid;place-items:center}
+
+/* row 2: project + modules */
+.subbar{display:flex;align-items:stretch;background:var(--panel);border-bottom:1px solid var(--line)}
+.projname{flex:0 0 260px;padding:12px 20px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:2px;justify-content:center}
+.projname b{font-family:'Unbounded',sans-serif;font-size:15px;font-weight:500}
+.modules{flex:1;display:flex;align-items:center;gap:6px;padding:10px 20px;min-width:0}
+.modules .label{margin-right:8px;flex:none}
+.mtab{flex:none;display:flex;align-items:center;gap:8px;height:38px;padding:0 16px;border-radius:9px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-size:14px;white-space:nowrap}
+.mtab i{width:8px;height:8px;border-radius:2px;display:block}
+.mtab[aria-current="true"]{color:var(--ink);font-weight:600}
+.mtab.add{border-style:dashed;color:var(--muted)}
+
+/* body */
+.body{flex:1;display:flex;min-height:0}
+.side{flex:0 0 260px;background:var(--side);border-right:1px solid var(--line);padding:16px 12px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
+.shead{display:flex;align-items:center;gap:10px;width:100%;height:46px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:15px;font-weight:600}
+.shead[aria-expanded="true"]{border-color:var(--ink)}
+.shead .cnt{margin-left:auto;font-size:12px;color:var(--faint);font-weight:500}
+.slist{display:flex;flex-direction:column;gap:2px;padding-left:6px}
+.sitem{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 10px;border-radius:8px;color:var(--ink2);text-decoration:none;font-size:14px;border:0;background:transparent;text-align:left;width:100%}
+.sitem:hover{background:var(--line2)}
+.sitem small{font-size:11px;color:var(--faint);white-space:nowrap}
+.sitem small.test{color:var(--blue)}
+.sitem .sub{display:block;font-size:12px;color:var(--faint);margin-top:2px}
+.sadd{text-align:left;padding:9px 10px;border:0;background:transparent;color:var(--accent);font-size:14px;font-weight:600}
+.msearch{margin-top:auto;padding:12px;border-radius:10px;background:var(--panel);border:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+.field{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:var(--bg)}
+.field input{border:0;background:transparent;outline:none;width:100%;font-size:14px;color:var(--ink)}
+.mres{display:flex;justify-content:space-between;align-items:center;font-size:14px;color:var(--ink2);padding:2px 2px}
+.mres button{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:5px 10px;font-size:12px;font-weight:600;color:var(--accent)}
+.mres button[disabled]{color:var(--faint);cursor:default}
+
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.mainhead{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:12px 20px;border-bottom:1px solid var(--line2);background:var(--panel)}
+.mainhead h1{margin:0;font-family:'Unbounded',sans-serif;font-size:18px;font-weight:500}
+.btn{height:38px;padding:0 14px;border-radius:9px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:14px}
+.btn.dark{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:600}
+.canvas{flex:1;overflow:auto;background-color:var(--bg);background-image:radial-gradient(var(--dot) 1px,transparent 1px);background-size:20px 20px;position:relative}
+.plane{position:relative;min-width:1000px;min-height:700px}
+.card{position:absolute;width:260px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px;box-shadow:0 6px 18px rgba(0,0,0,.08);cursor:grab;user-select:none;touch-action:none}
+.card.drag{cursor:grabbing;box-shadow:0 14px 32px rgba(0,0,0,.18);z-index:5}
+.card h2{margin:0;font-size:15px;font-weight:600;line-height:1.35}
+.card p{margin:0;font-size:13px;line-height:1.5;color:var(--muted);white-space:pre-line}
+.card .meta{font-size:11px;color:var(--faint)}
+.badge{align-self:flex-start;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px}
+.b-idea{background:var(--line2);color:var(--muted)}
+.b-test{background:var(--blue-bg);color:var(--blue)}
+.b-none{background:var(--orange-bg);color:var(--orange-ink)}
+.b-ok{background:var(--accent-bg);color:var(--accent)}
+
+/* agent sheet */
+.agent{position:fixed;right:20px;bottom:20px;width:min(380px,calc(100vw - 32px));background:var(--top);color:#F2F3EF;border-radius:14px;padding:16px;display:none;flex-direction:column;gap:10px;box-shadow:0 20px 50px rgba(0,0,0,.3);z-index:20}
+.agent.open{display:flex}
+.agent .row{display:flex;align-items:center;justify-content:space-between}
+.agent p{margin:0;font-size:14px;line-height:1.5;color:#D3D5D0}
+.agent button.x{border:0;background:transparent;color:#C5C9CE;font-size:20px;width:36px;height:36px}
+
+/* mobile nav (hidden on desktop) */
+.tabbar{display:none}
+.mview{display:none}
+
+@media (max-width: 860px){
+  .topbar{flex-wrap:wrap;padding:12px 12px 10px;gap:8px}
+  .brand{margin-right:0}
+  .topright{margin-left:auto}
+  .topright .conn span{display:none}
+  .topbar .plabel{display:none}
+  .topbar .scroller{order:3;flex:1 1 100%}
+  .ptab{height:44px}
+  .addbtn{width:44px;height:44px}
+  .subbar{flex-direction:column}
+  .projname{flex:none;border-right:0;padding:10px 16px 0}
+  .projname .label{display:none}
+  .modules{padding:8px 12px 10px;overflow-x:auto;scrollbar-width:none}
+  .modules::-webkit-scrollbar{display:none}
+  .modules .label{display:none}
+  .mtab{height:40px;border-radius:999px;padding:0 14px}
+  .side{display:none}
+  .mainhead{padding:12px 16px}
+  .mainhead h1{font-size:16px}
+  .mainhead .btn.dark{display:none}
+  .canvas{background-image:none}
+  .plane{min-width:0;min-height:0;padding:12px 16px 24px;display:flex;flex-direction:column;gap:12px}
+  .card{position:static;width:auto;cursor:default;box-shadow:none}
+  .body.tab-ideas .main,.body.tab-notes .main,.body.tab-modules .main{display:none}
+  .mview{display:none;flex:1;overflow-y:auto;padding:16px;flex-direction:column;gap:8px}
+  .body.tab-ideas .mview.ideas,.body.tab-notes .mview.notes,.body.tab-modules .mview.mods{display:flex}
+  .mview h1{margin:0 0 4px;font-family:'Unbounded',sans-serif;font-size:16px;font-weight:500}
+  .mrow{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:54px;padding:8px 14px;border-radius:10px;background:var(--panel);border:1px solid var(--line);color:var(--ink);text-decoration:none;font-size:15px;text-align:left;width:100%}
+  .mrow small{font-size:12px;color:var(--faint)}
+  .mrow small.test{color:var(--blue)}
+  .madd{min-height:48px;border-radius:10px;border:1px dashed #A8ACB2;background:transparent;color:var(--accent);font-size:15px;font-weight:600;flex:1}
+  .mic{width:48px;min-height:48px;border-radius:10px;border:0;background:#0B6B52;color:#fff;display:grid;place-items:center}
+  .tabbar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:var(--panel);border-top:1px solid var(--line);padding:6px 8px calc(8px + env(safe-area-inset-bottom))}
+  .tabbar button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:52px;border:0;background:transparent;font-size:11px;color:var(--faint)}
+  .tabbar button[aria-current="true"]{color:var(--accent);font-weight:600}
+  .fab{position:fixed;right:16px;bottom:calc(84px + env(safe-area-inset-bottom));height:48px;padding:0 18px;border-radius:999px;border:0;background:var(--ink);color:var(--bg);font-weight:600;font-size:14px;box-shadow:0 10px 24px rgba(0,0,0,.2);z-index:10}
+  .agent{bottom:calc(84px + env(safe-area-inset-bottom));right:16px}
+}
+@media (min-width: 861px){ .fab{display:none} }
+.ver{position:fixed;right:12px;bottom:10px;font-size:11px;color:var(--faint);pointer-events:none}
+@media (max-width:860px){ .ver{display:none} }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 17.5h7M17.5 14v7"/></svg></div>
+      <span>[НАЗВА]</span>
+    </div>
+    <span class="label plabel">Проєкти</span>
+    <nav class="scroller" id="projects" aria-label="Проєкти"></nav>
+    <div class="topright">
+      <span class="conn mono"><i></i><span>Claude підключено</span></span>
+      <button class="iconbtn" id="theme" aria-label="Перемкнути тему"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+      <div class="avatar" aria-hidden="true">І</div>
+    </div>
+  </header>
+
+  <div class="subbar">
+    <div class="projname"><span class="label">Проєкт</span><b id="pname"></b></div>
+    <nav class="modules" aria-label="Модулі проєкту"><span class="label">Модулі</span><span id="modules" style="display:flex;gap:6px"></span><button class="mtab add" id="addmod">+ модуль</button></nav>
+  </div>
+
+  <div class="body tab-board" id="body">
+    <aside class="side">
+      <button class="shead" id="hIdeas" aria-expanded="true">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/></svg>
+        Ідеї<span class="cnt" id="cIdeas"></span>
+      </button>
+      <div class="slist" id="sIdeas"></div>
+      <button class="shead" id="hNotes" aria-expanded="false">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 4h10l4 4v12H5z"/><path d="M9 12h6M9 16h4"/></svg>
+        Нотатки<span class="cnt" id="cNotes"></span>
+      </button>
+      <div class="slist" id="sNotes" hidden></div>
+      <div class="msearch">
+        <span class="label">Пошук модулів</span>
+        <label class="field">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="color:var(--faint)"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input id="q" placeholder="Фінанси, продажі…" aria-label="Пошук модулів">
+        </label>
+        <div id="mres"></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="mainhead">
+        <h1 id="btitle"></h1>
+        <div style="display:flex;gap:8px">
+          <button class="btn" id="addcard">+ Картка</button>
+          <button class="btn dark" id="askd">Спитати агента</button>
+        </div>
+      </div>
+      <div class="canvas"><div class="plane" id="plane"></div></div>
+    </main>
+
+    <section class="mview ideas" aria-label="Ідеї"><h1>Ідеї</h1><div id="mIdeas" style="display:flex;flex-direction:column;gap:8px"></div><button class="madd" data-add="idea">+ Нова ідея</button></section>
+    <section class="mview notes" aria-label="Нотатки"><h1>Нотатки</h1><div id="mNotes" style="display:flex;flex-direction:column;gap:8px"></div>
+      <div style="display:flex;gap:8px"><button class="madd" data-add="note">+ Нотатка</button><button class="mic" aria-label="Записати голосову нотатку"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button></div>
+    </section>
+    <section class="mview mods" aria-label="Пошук модулів"><h1>Пошук модулів</h1>
+      <label class="mrow" style="justify-content:flex-start"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="color:var(--faint)"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q2" placeholder="Фінанси, продажі…" aria-label="Пошук модулів" style="border:0;background:transparent;outline:none;width:100%;font-size:15px;color:var(--ink)"></label>
+      <div id="mres2" style="display:flex;flex-direction:column;gap:8px"></div>
+    </section>
+  </div>
+
+  <nav class="tabbar" aria-label="Розділи" id="tabbar"></nav>
+</div>
+
+<button class="fab" id="askm">Агент</button>
+<div class="agent" id="agent" role="dialog" aria-label="Агент-експерт">
+  <div class="row"><span class="label" style="color:#9FA4AB">Агент-експерт · <span id="amod"></span></span><button class="x" id="aclose" aria-label="Закрити">×</button></div>
+  <p id="atext"></p>
+  <span class="mono" style="font-size:11px;color:#8A8F96">демо: у продукті відповідь прийде з Claude через MCP</span>
+</div>
+<div class="ver mono">ескіз v2 · демо-дані · зміни зберігаються лише у вашому браузері</div>
+
+<script>
+(function(){
+  var KEY = 'sketch-v2-state';
+  var P = [
+    {name:'Застосунок для сну', letter:'С', color:'#0B6B52'},
+    {name:"Кав'ярня Львів", letter:'К', color:'#2F5BD3'},
+    {name:'Особисте', letter:'О', color:'#C2410C'}
+  ];
+  var M = [
+    {name:'Маркетинг', color:'#0B6B52', bg:'var(--accent-bg)'},
+    {name:'Стратегія', color:'#2F5BD3', bg:'var(--blue-bg)'},
+    {name:'Аналітика', color:'#C2410C', bg:'var(--orange-bg)'}
+  ];
+  var EXTRA = ['Продажі B2B','Фінанси','Продукт','Найм','Психологія · скоро'];
+  var BADGE = {'Ідея':'b-idea','Тест триває':'b-test','Немає вердикту':'b-none','Спрацювало':'b-ok'};
+  var SEED_BOARD = [
+    [
+      [
+        {s:'Ідея',t:'Ідея 1 · Пейвол після 3-го дня',b:'Гіпотеза: довший пробний період\nпідвищить конверсію в оплату',m:'з нотатки 12.10',x:40,y:40},
+        {s:'Тест триває',t:'Новий онбординг',b:'Поріг: конверсія ≥ контролю\nПеревірка: [ДАТА]',m:'тест A/B',x:340,y:90},
+        {s:'Немає вердикту',t:'TikTok для Польщі',b:'Даних замало.\nДалі: ще тиждень трафіку',m:'агент',x:640,y:40},
+        {s:'Спрацювало',t:'Річний план зі знижкою',b:'Записано в журнал рішень',m:'рішення',x:180,y:330}
+      ],
+      [
+        {s:'Ідея',t:'Вихід у Німеччину',b:'Що треба знати до рішення?\nЦіни, конкуренти, мова',m:'нова',x:60,y:60},
+        {s:'Немає вердикту',t:'Партнерство з клінікою сну',b:'Невідомо: умови партнера',m:'агент',x:380,y:160}
+      ],
+      [
+        {s:'Тест триває',t:'Утримання 7-го дня',b:'Ціль: [XX%]\nЗараз: [XX%]',m:'дані',x:60,y:60},
+        {s:'Ідея',t:'Когорти за каналом',b:'Порівняти TikTok і Meta',m:'нова',x:360,y:60}
+      ]
+    ],
+    [
+      [{s:'Ідея',t:'Зимове меню в Instagram',b:'Серія з 5 постів',m:'нова',x:60,y:60},{s:'Тест триває',t:'Знижка до 10:00',b:'Поріг: +15% чеків зранку\nПеревірка: [ДАТА]',m:'тест',x:360,y:120}],
+      [{s:'Немає вердикту',t:'Друга точка',b:'Даних про трафік району замало',m:'агент',x:80,y:80}],
+      [{s:'Ідея',t:'Середній чек за днями',b:'Підключити касу',m:'нова',x:60,y:60}]
+    ],
+    [
+      [{s:'Ідея',t:'Особистий бренд',b:'1 пост на тиждень',m:'нова',x:60,y:60}],
+      [{s:'Ідея',t:'План на квартал',b:'3 цілі, засоби, kill-критерії',m:'нова',x:60,y:60}],
+      []
+    ]
+  ];
+  var SEED_IDEAS = [
+    [{t:'Пейвол після 3-го дня',s:'нова'},{t:'Новий онбординг',s:'у тесті'},{t:'Запуск у Німеччині',s:'нова'}],
+    [{t:'Друга точка',s:'нова'},{t:'Зимове меню',s:'у тесті'}],
+    [{t:'Книга про ціни',s:'нова'}]
+  ];
+  var SEED_NOTES = [
+    [{t:'Голосове: відгуки з Польщі',m:'сьогодні · 2 хв'},{t:'Конкурент знизив ціну',m:'вчора'},{t:'Дзвінок з дизайнером',m:'12.10'}],
+    [{t:'Постачальник кави',m:'15.10'}],
+    [{t:'Думки про продукт',m:'10.10'}]
+  ];
+  var AGENT = [
+    'Ідея «Пейвол після 3-го дня» ще без тесту. Пропоную: A/B на 50% нових користувачів, поріг «не спрацювало» — конверсія нижча за контроль, перевірка через 14 днів. Додати картку тесту?',
+    'Для рішення про Німеччину бракує трьох речей: ціни конкурентів, вартість локалізації, CPM у DE. Без них вердикту немає.',
+    'Утримання 7-го дня: даних за 2 тижні замало для висновку про тренд. Повернуся, коли буде ≥ 4 когорти.'
+  ];
+
+  var st = load() || {p:0, m:0, side:'ideas', tab:'board', board:clone(SEED_BOARD), ideas:clone(SEED_IDEAS), notes:clone(SEED_NOTES), mods:[[0,1,2],[0,1],[1]]};
+  function clone(o){ return JSON.parse(JSON.stringify(o)); }
+  function load(){ try { var s = localStorage.getItem(KEY); return s ? JSON.parse(s) : null; } catch(e){ return null; } }
+  function save(){ try { localStorage.setItem(KEY, JSON.stringify(st)); } catch(e){} }
+  function el(tag, attrs, html){ var e = document.createElement(tag); for (var k in (attrs||{})) e.setAttribute(k, attrs[k]); if (html != null) e.innerHTML = html; return e; }
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  var $ = function(id){ return document.getElementById(id); };
+
+  function render(){
+    // projects
+    var pr = $('projects'); pr.innerHTML = '';
+    P.forEach(function(p, i){
+      var b = el('button', {'class':'ptab','aria-current': String(i===st.p)}, '<span class="pdot" style="background:'+p.color+'">'+p.letter+'</span>'+esc(p.name));
+      b.onclick = function(){ st.p = i; st.m = st.mods[i][0] || 0; save(); render(); };
+      pr.appendChild(b);
+    });
+    var add = el('button', {'class':'addbtn','aria-label':'Новий проєкт'}, '+');
+    add.onclick = function(){ alertSoft('Створення проєкту — у наступній версії'); };
+    pr.appendChild(add);
+    $('pname').textContent = P[st.p].name;
+
+    // modules
+    var mm = $('modules'); mm.innerHTML = '';
+    var active = st.mods[st.p];
+    if (active.indexOf(st.m) < 0) st.m = active[0];
+    active.forEach(function(mi){
+      var m = M[mi]; var on = mi === st.m;
+      var b = el('button', {'class':'mtab','aria-current': String(on)}, '<i style="background:'+m.color+'"></i>'+m.name);
+      if (on) { b.style.borderColor = m.color; b.style.background = m.bg; }
+      b.onclick = function(){ st.m = mi; st.tab = 'board'; save(); render(); };
+      mm.appendChild(b);
+    });
+
+    // board
+    var list = st.board[st.p][st.m] || [];
+    $('btitle').textContent = 'Дошка · ' + M[st.m].name;
+    var plane = $('plane'); plane.innerHTML = '';
+    if (!list.length) plane.appendChild(el('p', {'style':'position:absolute;left:40px;top:40px;color:var(--faint);margin:0'}, 'Дошка порожня. Додайте картку або ідею.'));
+    list.forEach(function(c, idx){
+      var a = el('article', {'class':'card','style':'left:'+c.x+'px;top:'+c.y+'px'},
+        '<span class="badge '+BADGE[c.s]+'">'+esc(c.s)+'</span><h2>'+esc(c.t)+'</h2><p>'+esc(c.b)+'</p><span class="meta mono">'+esc(c.m)+'</span>');
+      drag(a, c);
+      plane.appendChild(a);
+    });
+
+    // sidebar
+    var ideas = st.ideas[st.p], notes = st.notes[st.p];
+    $('cIdeas').textContent = ideas.length; $('cNotes').textContent = notes.length;
+    $('hIdeas').setAttribute('aria-expanded', String(st.side==='ideas'));
+    $('hNotes').setAttribute('aria-expanded', String(st.side==='notes'));
+    $('sIdeas').hidden = st.side !== 'ideas'; $('sNotes').hidden = st.side !== 'notes';
+    var si = $('sIdeas'); si.innerHTML = '';
+    ideas.forEach(function(i, idx){ var b = el('button', {'class':'sitem'}, '<span>'+esc(i.t)+'</span><small class="'+(i.s==='у тесті'?'test':'')+'">'+i.s+'</small>'); b.onclick = function(){ ideaToBoard(idx); }; b.title = 'Перенести на дошку'; si.appendChild(b); });
+    var ai = el('button', {'class':'sadd'}, '+ Нова ідея'); ai.onclick = function(){ addItem('idea'); }; si.appendChild(ai);
+    var sn = $('sNotes'); sn.innerHTML = '';
+    notes.forEach(function(n){ sn.appendChild(el('a', {'class':'sitem','href':'#'}, '<span>'+esc(n.t)+'<span class="sub">'+esc(n.m)+'</span></span>')); });
+    var an = el('button', {'class':'sadd'}, '+ Нова нотатка'); an.onclick = function(){ addItem('note'); }; sn.appendChild(an);
+
+    // mobile lists
+    var mi = $('mIdeas'); mi.innerHTML = '';
+    ideas.forEach(function(i, idx){ var b = el('button', {'class':'mrow'}, '<span>'+esc(i.t)+'</span><small class="'+(i.s==='у тесті'?'test':'')+'">'+i.s+'</small>'); b.onclick = function(){ ideaToBoard(idx); }; mi.appendChild(b); });
+    var mn = $('mNotes'); mn.innerHTML = '';
+    notes.forEach(function(n){ mn.appendChild(el('a', {'class':'mrow','href':'#'}, '<span>'+esc(n.t)+'</span><small>'+esc(n.m)+'</small>')); });
+
+    // module search
+    renderSearch('q','mres'); renderSearch('q2','mres2');
+
+    // tabs
+    var body = $('body'); body.className = 'body tab-' + st.tab;
+    var T = [
+      ['board','Дошка','M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z'],
+      ['ideas','Ідеї','M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z'],
+      ['notes','Нотатки','M5 4h10l4 4v12H5zM9 12h6M9 16h4'],
+      ['modules','Модулі','M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4']
+    ];
+    var tb = $('tabbar'); tb.innerHTML = '';
+    T.forEach(function(t){
+      var b = el('button', {'aria-current': String(st.tab===t[0])}, '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="'+t[2]+'"/></svg><span>'+t[1]+'</span>');
+      b.onclick = function(){ st.tab = t[0]; save(); render(); };
+      tb.appendChild(b);
+    });
+    $('amod').textContent = M[st.m].name;
+  }
+
+  function renderSearch(qid, rid){
+    var q = ($(qid).value || '').toLowerCase().trim();
+    var have = st.mods[st.p].map(function(i){ return M[i].name; });
+    var all = M.map(function(m){ return m.name; }).concat(EXTRA);
+    var r = $(rid); r.innerHTML = '';
+    all.filter(function(n){ return !q || n.toLowerCase().indexOf(q) >= 0; }).slice(0, q ? 8 : 3).forEach(function(n){
+      var idx = -1; M.forEach(function(m, i){ if (m.name === n) idx = i; });
+      var added = have.indexOf(n) >= 0, soon = n.indexOf('скоро') >= 0;
+      var row = el('div', {'class': rid==='mres2' ? 'mrow' : 'mres'}, '<span>'+esc(n)+'</span>');
+      var b = el('button', added||soon ? {'disabled':''} : {}, added ? 'Додано' : soon ? 'Скоро' : 'Додати');
+      if (rid==='mres2') b.setAttribute('style','height:36px;padding:0 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);font-size:13px;font-weight:600;color:'+(added||soon?'var(--faint)':'var(--accent)'));
+      b.onclick = function(){
+        if (idx >= 0) { st.mods[st.p].push(idx); st.m = idx; st.tab = 'board'; save(); render(); }
+        else alertSoft('Модуль «'+n+'» — демо: ще не існує');
+      };
+      row.appendChild(b); r.appendChild(row);
+    });
+  }
+
+  function ideaToBoard(idx){
+    var i = st.ideas[st.p][idx];
+    var list = st.board[st.p][st.m] = st.board[st.p][st.m] || [];
+    var exists = list.some(function(c){ return c.t === i.t; });
+    if (!exists) list.push({s:'Ідея', t:i.t, b:'Перенесено з бічної панелі.\nДалі: агент запропонує тест', m:'ідея', x:60 + (list.length%3)*300, y:420});
+    st.tab = 'board'; save(); render();
+  }
+
+  function addItem(kind){
+    var t = prompt(kind==='idea' ? 'Нова ідея:' : 'Нова нотатка:');
+    if (!t) return;
+    if (kind==='idea') st.ideas[st.p].unshift({t:t, s:'нова'});
+    else st.notes[st.p].unshift({t:t, m:'щойно'});
+    st.side = kind==='idea' ? 'ideas' : 'notes';
+    save(); render();
+  }
+
+  function drag(a, c){
+    var sx, sy, ox, oy, on = false;
+    a.addEventListener('pointerdown', function(e){
+      if (window.matchMedia('(max-width: 860px)').matches) return;
+      on = true; sx = e.clientX; sy = e.clientY; ox = c.x; oy = c.y; a.classList.add('drag'); a.setPointerCapture(e.pointerId);
+    });
+    a.addEventListener('pointermove', function(e){ if (!on) return; c.x = Math.max(0, ox + e.clientX - sx); c.y = Math.max(0, oy + e.clientY - sy); a.style.left = c.x+'px'; a.style.top = c.y+'px'; });
+    a.addEventListener('pointerup', function(){ if (!on) return; on = false; a.classList.remove('drag'); save(); });
+  }
+
+  var toastT;
+  function alertSoft(msg){
+    var t = $('toast'); if (!t){ t = el('div', {'id':'toast','role':'status','style':'position:fixed;left:50%;top:16px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;z-index:30'}); document.body.appendChild(t); }
+    t.textContent = msg; t.style.display = 'block'; clearTimeout(toastT); toastT = setTimeout(function(){ t.style.display = 'none'; }, 2200);
+  }
+
+  $('hIdeas').onclick = function(){ st.side = 'ideas'; save(); render(); };
+  $('hNotes').onclick = function(){ st.side = 'notes'; save(); render(); };
+  $('q').oninput = function(){ renderSearch('q','mres'); };
+  $('q2').oninput = function(){ renderSearch('q2','mres2'); };
+  $('addmod').onclick = function(){ st.tab = 'modules'; save(); render(); $('q').focus(); };
+  $('addcard').onclick = function(){ var t = prompt('Назва картки:'); if (!t) return; var l = st.board[st.p][st.m] = st.board[st.p][st.m] || []; l.push({s:'Ідея',t:t,b:'',m:'щойно',x:60,y:60}); save(); render(); };
+  document.querySelectorAll('[data-add]').forEach(function(b){ b.onclick = function(){ addItem(b.getAttribute('data-add')); }; });
+  function openAgent(){ $('atext').textContent = AGENT[st.m] || AGENT[0]; $('agent').classList.add('open'); }
+  $('askd').onclick = openAgent; $('askm').onclick = openAgent;
+  $('aclose').onclick = function(){ $('agent').classList.remove('open'); };
+  $('theme').onclick = function(){
+    var r = document.documentElement, cur = r.getAttribute('data-theme');
+    var dark = cur ? cur === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    r.setAttribute('data-theme', dark ? 'light' : 'dark');
+    try { localStorage.setItem('sketch-theme', dark ? 'light' : 'dark'); } catch(e){}
+  };
+  try { var th = localStorage.getItem('sketch-theme'); if (th) document.documentElement.setAttribute('data-theme', th); } catch(e){}
+  render();
+})();
+</script>
+</body>
+</html>
