@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#15171A">
 <title>Кабінет · ескіз v2</title>
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -27,37 +28,37 @@
   }
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{margin:0;height:100%}
-body{background:var(--bg);color:var(--ink);font-family:'Onest',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
-button,input{font-family:inherit}
+body{background:var(--bg);color:var(--ink);font-family:'Onest',system-ui,sans-serif;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+button,input,textarea{font-family:inherit}
 button{cursor:pointer}
 a{color:var(--accent)}
 .mono{font-family:'JetBrains Mono',monospace}
-.disp{font-family:'Unbounded',sans-serif}
 .label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
-
 .app{display:flex;flex-direction:column;height:100dvh;min-height:100vh}
 
-/* row 1: projects */
-.topbar{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--top);color:#F2F3EF}
+/* ── top bar: projects ── */
+.topbar{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--top);color:#F2F3EF;flex:none}
 .brand{display:flex;align-items:center;gap:10px;margin-right:8px;flex:none}
-.logo{width:28px;height:28px;border-radius:7px;background:#0B6B52;display:grid;place-items:center}
+.logo{width:28px;height:28px;border-radius:7px;background:#0B6B52;display:grid;place-items:center;flex:none}
 .brand span{font-family:'Unbounded',sans-serif;font-weight:700;font-size:15px}
 .topbar .label{color:#9FA4AB}
 .scroller{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;min-width:0}
 .scroller::-webkit-scrollbar{display:none}
 .ptab{flex:none;display:flex;align-items:center;gap:8px;height:38px;padding:0 14px 0 8px;border:0;border-radius:9px;background:var(--top-chip);color:var(--top-ink);font-size:14px;white-space:nowrap}
 .ptab[aria-current="true"]{background:#F2F3EF;color:#15171A;font-weight:600}
-.pdot{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;font-size:11px;font-weight:700;color:#fff}
+.pdot{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;font-size:11px;font-weight:700;color:#fff;flex:none}
 .addbtn{flex:none;width:38px;height:38px;border-radius:9px;border:1px dashed #4A4F57;background:transparent;color:#C5C9CE;font-size:18px}
 .topright{margin-left:auto;display:flex;align-items:center;gap:12px;flex:none}
 .conn{font-size:12px;color:#6FCFA7;display:flex;align-items:center;gap:6px}
 .conn i{width:8px;height:8px;border-radius:50%;background:#2E9E6B;display:block}
 .avatar{width:30px;height:30px;border-radius:50%;background:#F2F3EF;color:#15171A;display:grid;place-items:center;font-size:13px;font-weight:600}
 .iconbtn{width:36px;height:36px;border-radius:8px;border:1px solid #33373D;background:transparent;color:#C5C9CE;display:grid;place-items:center}
+.pswitch{display:none}
 
-/* row 2: project + modules */
-.subbar{display:flex;align-items:stretch;background:var(--panel);border-bottom:1px solid var(--line)}
+/* ── desktop row 2: project + plugins ── */
+.subbar{display:flex;align-items:stretch;background:var(--panel);border-bottom:1px solid var(--line);flex:none}
 .projname{flex:0 0 260px;padding:12px 20px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:2px;justify-content:center}
 .projname b{font-family:'Unbounded',sans-serif;font-size:15px;font-weight:500}
 .modules{flex:1;display:flex;align-items:center;gap:6px;padding:10px 20px;min-width:0}
@@ -65,27 +66,33 @@ a{color:var(--accent)}
 .mtab{flex:none;display:flex;align-items:center;gap:8px;height:38px;padding:0 16px;border-radius:9px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-size:14px;white-space:nowrap}
 .mtab i{width:8px;height:8px;border-radius:2px;display:block}
 .mtab[aria-current="true"]{color:var(--ink);font-weight:600}
-.mtab.add{border-style:dashed;color:var(--muted)}
+.mtab.add{border-style:dashed}
 
-/* body */
+/* ── body ── */
 .body{flex:1;display:flex;min-height:0}
 .side{flex:0 0 260px;background:var(--side);border-right:1px solid var(--line);padding:16px 12px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
+.side > *{flex-shrink:0}
 .shead{display:flex;align-items:center;gap:10px;width:100%;height:46px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:15px;font-weight:600}
 .shead[aria-expanded="true"]{border-color:var(--ink)}
+.shead.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .shead .cnt{margin-left:auto;font-size:12px;color:var(--faint);font-weight:500}
-.slist{display:flex;flex-direction:column;gap:2px;padding-left:6px}
-.sitem{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 10px;border-radius:8px;color:var(--ink2);text-decoration:none;font-size:14px;border:0;background:transparent;text-align:left;width:100%}
-.sitem:hover{background:var(--line2)}
-.sitem small{font-size:11px;color:var(--faint);white-space:nowrap}
-.sitem small.test{color:var(--blue)}
-.sitem .sub{display:block;font-size:12px;color:var(--faint);margin-top:2px}
-.sadd{text-align:left;padding:9px 10px;border:0;background:transparent;color:var(--accent);font-size:14px;font-weight:600}
+.shead.on .cnt,.shead.on .dd{color:var(--bg)}
+.shead .dd{color:var(--faint);transition:transform .15s}
+.shead[aria-expanded="false"] .dd{transform:rotate(-90deg)}
+.groups{display:flex;flex-direction:column;gap:2px;max-height:146px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.grow{flex:none;display:flex;align-items:center;gap:10px;width:100%;min-height:46px;padding:0 10px;border:0;border-radius:8px;background:transparent;color:var(--ink2);font-size:14px;text-align:left}
+.grow:hover{background:var(--line2)}
+.grow i{width:8px;height:8px;border-radius:2px;display:block;flex:none}
+.grow[aria-pressed="true"]{background:var(--panel);box-shadow:inset 0 0 0 1px var(--line);color:var(--ink);font-weight:600}
+.grow .n{margin-left:auto;font-size:12px;color:var(--faint);font-weight:500}
+.scrollhint{font-size:11px;color:var(--faint);padding:2px 10px 0}
 .msearch{margin-top:auto;padding:12px;border-radius:10px;background:var(--panel);border:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
 .field{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:var(--bg)}
 .field input{border:0;background:transparent;outline:none;width:100%;font-size:14px;color:var(--ink)}
-.mres{display:flex;justify-content:space-between;align-items:center;font-size:14px;color:var(--ink2);padding:2px 2px}
-.mres button{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:5px 10px;font-size:12px;font-weight:600;color:var(--accent)}
+.mres{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px;color:var(--ink2);padding:2px}
+.mres button{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:5px 10px;font-size:12px;font-weight:600;color:var(--accent);flex:none}
 .mres button[disabled]{color:var(--faint);cursor:default}
+.empty{font-size:13px;color:var(--faint);padding:8px 10px}
 
 .main{flex:1;min-width:0;display:flex;flex-direction:column}
 .mainhead{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:12px 20px;border-bottom:1px solid var(--line2);background:var(--panel)}
@@ -93,108 +100,112 @@ a{color:var(--accent)}
 .btn{height:38px;padding:0 14px;border-radius:9px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:14px}
 .btn.dark{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:600}
 .canvas{flex:1;overflow:auto;background-color:var(--bg);background-image:radial-gradient(var(--dot) 1px,transparent 1px);background-size:20px 20px;position:relative}
-.plane{position:relative;min-width:1000px;min-height:700px}
-.card{position:absolute;width:260px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px;box-shadow:0 6px 18px rgba(0,0,0,.08);cursor:grab;user-select:none;touch-action:none}
+.plane{position:relative;left:56px;top:40px;min-width:1000px;min-height:700px}
+.card{position:absolute;width:260px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px;box-shadow:0 6px 18px rgba(0,0,0,.08);cursor:grab;user-select:none;touch-action:none;text-align:left;color:var(--ink);font:inherit}
 .card.drag{cursor:grabbing;box-shadow:0 14px 32px rgba(0,0,0,.18);z-index:5}
 .card h2{margin:0;font-size:15px;font-weight:600;line-height:1.35}
 .card p{margin:0;font-size:13px;line-height:1.5;color:var(--muted);white-space:pre-line}
-.card .meta{font-size:11px;color:var(--faint)}
-.badge{align-self:flex-start;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px}
+.meta{font-size:11px;color:var(--faint)}
+.plug{display:flex;align-items:center;gap:6px}
+.plug i{width:8px;height:8px;border-radius:2px;display:block;flex:none}
+.badge{align-self:flex-start;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;white-space:nowrap}
 .b-idea{background:var(--line2);color:var(--muted)}
 .b-test{background:var(--blue-bg);color:var(--blue)}
 .b-none{background:var(--orange-bg);color:var(--orange-ink)}
 .b-note{background:var(--blue-bg);color:var(--blue)}
 .b-ok{background:var(--accent-bg);color:var(--accent)}
 
-/* agent sheet */
-.agent{position:fixed;right:20px;bottom:20px;width:min(380px,calc(100vw - 32px));background:var(--top);color:#F2F3EF;border-radius:14px;padding:16px;display:none;flex-direction:column;gap:10px;box-shadow:0 20px 50px rgba(0,0,0,.3);z-index:20}
+/* corner + (desktop) */
+.addwrap{position:sticky;top:0;left:0;height:0;z-index:6}
+.addfab{position:absolute;top:14px;left:14px;display:flex;align-items:center;height:44px;min-width:44px;padding:0 11px;border-radius:12px;border:0;background:var(--ink);color:var(--bg);box-shadow:0 8px 20px rgba(0,0,0,.18);font-size:14px;font-weight:600;overflow:hidden;white-space:nowrap}
+.addfab .addtip{max-width:0;opacity:0;transition:max-width .2s,opacity .2s,margin .2s}
+.addfab:hover .addtip,.addfab:focus-visible .addtip{max-width:240px;opacity:1;margin-left:8px}
+
+/* agent panel */
+.agent{position:fixed;right:20px;bottom:20px;width:min(380px,calc(100vw - 32px));background:var(--top);color:#F2F3EF;border-radius:14px;padding:16px;display:none;flex-direction:column;gap:10px;box-shadow:0 20px 50px rgba(0,0,0,.3);z-index:40}
 .agent.open{display:flex}
 .agent .row{display:flex;align-items:center;justify-content:space-between}
 .agent p{margin:0;font-size:14px;line-height:1.5;color:#D3D5D0}
-.agent button.x{border:0;background:transparent;color:#C5C9CE;font-size:20px;width:36px;height:36px}
+.agent button.x{border:0;background:transparent;color:#C5C9CE;font-size:22px;width:44px;height:44px}
 
-/* corner add button */
-.addwrap{position:sticky;top:0;left:0;height:0;z-index:6}
-.addfab{position:absolute;top:14px;left:14px;display:flex;align-items:center;gap:0;height:44px;min-width:44px;padding:0 11px;border-radius:12px;border:0;background:var(--ink);color:var(--bg);box-shadow:0 8px 20px rgba(0,0,0,.18);font-size:14px;font-weight:600;overflow:hidden;white-space:nowrap}
-.addfab .addtip{max-width:0;opacity:0;transition:max-width .2s,opacity .2s,margin .2s}
-.addfab:hover .addtip,.addfab:focus-visible .addtip{max-width:240px;opacity:1;margin-left:8px}
-.plane{left:56px;top:40px}
-/* groups by module */
-[hidden]{display:none!important}
-.shead.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.shead.on .cnt,.shead.on .dd{color:var(--bg)}
-.shead .dd{color:var(--faint);transition:transform .15s}
-.shead[aria-expanded="false"] .dd{transform:rotate(-90deg)}
-.shead .cnt{margin-left:auto}
-.side > *{flex-shrink:0}
-.mview > .madd{flex:none}
-.groups{display:flex;flex-direction:column;gap:2px;max-height:146px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
-.grow{flex:none;display:flex;align-items:center;gap:10px;width:100%;min-height:46px;padding:0 10px;border:0;border-radius:8px;background:transparent;color:var(--ink2);font-size:14px;text-align:left}
-.grow:hover{background:var(--line2)}
-.grow i{width:8px;height:8px;border-radius:2px;display:block;flex:none}
-.grow[aria-pressed="true"]{background:var(--panel);box-shadow:inset 0 0 0 1px var(--line);color:var(--ink);font-weight:600}
-.grow .n{margin-left:auto;font-size:12px;color:var(--faint);font-weight:500}
-.grow .chev{color:var(--faint);transition:transform .15s}
-.grow[aria-pressed="true"] .chev{transform:rotate(90deg)}
-.scrollhint{font-size:11px;color:var(--faint);padding:2px 10px 0}
-.gitems{display:flex;flex-direction:column;gap:2px;margin:4px 0 2px 14px;padding-left:8px;border-left:2px solid var(--line)}
-.empty{font-size:13px;color:var(--faint);padding:8px 10px}
-.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -16px 4px;padding:0 16px}
-.chips::-webkit-scrollbar{display:none}
-.chip{flex:none;display:flex;align-items:center;gap:8px;height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-size:14px;white-space:nowrap}
-.chip i{width:8px;height:8px;border-radius:2px;display:block}
-.chip[aria-pressed="true"]{color:var(--ink);font-weight:600}
-.chip .n{font-size:12px;color:var(--faint);font-weight:500}
+/* ── sheet (bottom sheet on phone, modal on desktop) ── */
+.scrim{position:fixed;inset:0;background:rgba(10,11,12,.45);z-index:50;opacity:0;pointer-events:none;transition:opacity .2s}
+.scrim.open{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:min(460px,calc(100vw - 32px));max-height:min(80vh,680px);overflow-y:auto;background:var(--panel);color:var(--ink);border-radius:16px;padding:20px;z-index:51;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;box-shadow:0 30px 80px rgba(0,0,0,.3)}
+.sheet.open{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.sheet .grab{display:none}
+.shtop{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.shtop h2{margin:0;font-family:'Unbounded',sans-serif;font-size:17px;font-weight:500;line-height:1.3}
+.shx{width:44px;height:44px;flex:none;border:0;border-radius:10px;background:var(--line2);color:var(--ink);font-size:20px}
+.shsec{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-size:14px}
+.opt i{width:8px;height:8px;border-radius:2px;display:block}
+.opt[aria-pressed="true"]{border-color:var(--ink);color:var(--ink);font-weight:600;box-shadow:inset 0 0 0 1px var(--ink)}
+.inp{width:100%;min-height:48px;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:16px;outline:none;resize:vertical}
+.inp:focus{border-color:var(--ink)}
+.primary{width:100%;min-height:52px;border:0;border-radius:12px;background:var(--ink);color:var(--bg);font-size:16px;font-weight:600;margin-top:18px}
+.ghost{min-height:44px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--ink);font-size:14px}
+.danger{color:var(--orange-ink)}
+.rows{display:flex;flex-direction:column;gap:8px}
+.rowbtn{display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:15px;text-align:left;width:100%}
+.rowbtn[aria-current="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink);font-weight:600}
+.rowbtn .n{margin-left:auto;font-size:13px;color:var(--faint)}
 
-/* mobile nav (hidden on desktop) */
-.tabbar{display:none}
-.mview{display:none}
-
-@media (max-width: 860px){
-  .topbar{flex-wrap:wrap;padding:12px 12px 10px;gap:8px}
-  .brand{margin-right:0}
-  .topright{margin-left:auto}
-  .topright .conn span{display:none}
-  .topbar .plabel{display:none}
-  .topbar .scroller{order:3;flex:1 1 100%}
-  .ptab{height:44px}
-  .addbtn{width:44px;height:44px}
-  .subbar{flex-direction:column}
-  .projname{flex:none;border-right:0;padding:10px 16px 0}
-  .projname .label{display:none}
-  .modules{padding:8px 12px 10px;overflow-x:auto;scrollbar-width:none}
-  .modules::-webkit-scrollbar{display:none}
-  .modules .label{display:none}
-  .mtab{height:40px;border-radius:999px;padding:0 14px}
-  .side{display:none}
-  .mainhead{padding:12px 16px}
-  .mainhead h1{font-size:16px}
-  .mainhead .btn.dark{display:none}
-  .canvas{background-image:none}
-  .plane{min-width:0;min-height:0;padding:12px 16px 24px;display:flex;flex-direction:column;gap:12px}
-  .card{position:static;width:auto;cursor:default;box-shadow:none}
-  .plane{left:0;top:0}
-  .addwrap{position:static;height:auto;padding:12px 16px 0}
-  .addfab{position:static;width:100%;justify-content:center;border-radius:10px}
-  .addfab .addtip{max-width:none;opacity:1;margin-left:8px}
-  .body.tab-ideas .main,.body.tab-notes .main,.body.tab-modules .main{display:none}
-  .mview{display:none;flex:1;overflow-y:auto;padding:16px;flex-direction:column;gap:8px}
-  .body.tab-ideas .mview.ideas,.body.tab-notes .mview.notes,.body.tab-modules .mview.mods{display:flex}
-  .mview h1{margin:0 0 4px;font-family:'Unbounded',sans-serif;font-size:16px;font-weight:500}
-  .mrow{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:54px;padding:8px 14px;border-radius:10px;background:var(--panel);border:1px solid var(--line);color:var(--ink);text-decoration:none;font-size:15px;text-align:left;width:100%}
-  .mrow small{font-size:12px;color:var(--faint)}
-  .mrow small.test{color:var(--blue)}
-  .madd{min-height:48px;border-radius:10px;border:1px dashed #A8ACB2;background:transparent;color:var(--accent);font-size:15px;font-weight:600;flex:1}
-  .mic{width:48px;min-height:48px;border-radius:10px;border:0;background:#0B6B52;color:#fff;display:grid;place-items:center}
-  .tabbar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:var(--panel);border-top:1px solid var(--line);padding:6px 8px calc(8px + env(safe-area-inset-bottom))}
-  .tabbar button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:52px;border:0;background:transparent;font-size:11px;color:var(--faint)}
-  .tabbar button[aria-current="true"]{color:var(--accent);font-weight:600}
-  .fab{position:fixed;right:16px;bottom:calc(84px + env(safe-area-inset-bottom));height:48px;padding:0 18px;border-radius:999px;border:0;background:var(--ink);color:var(--bg);font-weight:600;font-size:14px;box-shadow:0 10px 24px rgba(0,0,0,.2);z-index:10}
-  .agent{bottom:calc(84px + env(safe-area-inset-bottom));right:16px}
-}
-@media (min-width: 861px){ .fab{display:none} }
+/* mobile-only blocks hidden on desktop */
+.mfilters,.mbar,.mlist{display:none}
 .ver{position:fixed;right:12px;bottom:10px;font-size:11px;color:var(--faint);pointer-events:none}
-@media (max-width:860px){ .ver{display:none} }
+
+/* ════════ PHONE ════════ */
+@media (max-width: 860px){
+  .topbar{padding:8px 12px;gap:8px;padding-top:calc(8px + env(safe-area-inset-top))}
+  .brand span,.plabel,#projects,.conn span{display:none}
+  .brand{margin:0}
+  .pswitch{display:flex;align-items:center;gap:10px;flex:1;min-width:0;height:44px;padding:0 10px 0 6px;border:0;border-radius:10px;background:var(--top-chip);color:#F2F3EF;font-size:15px;font-weight:600;text-align:left}
+  .pswitch .pname{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pswitch svg{flex:none;color:var(--top-ink)}
+  .topright{gap:8px;margin-left:0}
+  .iconbtn{width:44px;height:44px;border-radius:10px}
+  .avatar{display:none}
+  .subbar,.side,.mainhead,.addwrap,.ver{display:none}
+
+  .mfilters{display:flex;flex-direction:column;gap:10px;padding:10px 0 10px;background:var(--panel);border-bottom:1px solid var(--line);flex:none}
+  .seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:0 12px;padding:4px;border-radius:12px;background:var(--line2)}
+  .seg button{min-height:40px;border:0;border-radius:9px;background:transparent;color:var(--muted);font-size:15px;font-weight:500}
+  .seg button[aria-pressed="true"]{background:var(--panel);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+  .seg .n{font-size:12px;color:var(--faint);margin-left:4px}
+  .mchips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:0 12px;scroll-padding:12px}
+  .mchips::-webkit-scrollbar{display:none}
+  .chip{flex:none;display:flex;align-items:center;gap:8px;height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-size:14px;white-space:nowrap}
+  .chip i{width:8px;height:8px;border-radius:2px;display:block}
+  .chip[aria-pressed="true"]{color:var(--ink);font-weight:600}
+  .chip .n{font-size:12px;color:var(--faint);font-weight:500}
+  .chip.add{border-style:dashed;padding:0 12px}
+
+  .canvas{background-image:none;-webkit-overflow-scrolling:touch}
+  .plane{display:none}
+  .mlist{display:flex;flex-direction:column;gap:10px;padding:12px 12px calc(110px + env(safe-area-inset-bottom))}
+  .grp{display:flex;align-items:center;gap:8px;margin:10px 4px 0;font-size:13px;font-weight:600;color:var(--muted)}
+  .grp:first-child{margin-top:0}
+  .grp .n{font-weight:500;color:var(--faint)}
+  .grp i{width:8px;height:8px;border-radius:50%;display:block}
+  .mcard{position:static;width:100%;cursor:pointer;box-shadow:none;touch-action:auto;user-select:auto;padding:14px 14px 12px;gap:6px}
+  .mcard:active{transform:scale(.99);background:var(--side)}
+  .mcard .foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:2px}
+  .mcard p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .hint{font-size:13px;color:var(--faint);text-align:center;padding:4px 0 0}
+
+  .mbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:end;position:fixed;left:0;right:0;bottom:0;z-index:30;padding:0 16px calc(10px + env(safe-area-inset-bottom));background:linear-gradient(to top,var(--bg) 60%,transparent);pointer-events:none}
+  .mbar > *{pointer-events:auto}
+  .mside{justify-self:start;display:flex;align-items:center;gap:8px;height:48px;padding:0 16px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:14px;font-weight:600;box-shadow:0 6px 16px rgba(0,0,0,.08)}
+  .mside.r{justify-self:end}
+  .mplus{width:64px;height:64px;border-radius:50%;border:0;background:var(--ink);color:var(--bg);display:grid;place-items:center;box-shadow:0 10px 24px rgba(0,0,0,.25);margin:0 8px}
+  .agent{left:12px;right:12px;width:auto;bottom:calc(84px + env(safe-area-inset-bottom))}
+
+  .sheet{left:0;right:0;top:auto;bottom:0;width:100%;max-height:88dvh;transform:translateY(100%);border-radius:20px 20px 0 0;padding:8px 16px calc(20px + env(safe-area-inset-bottom))}
+  .sheet.open{transform:translateY(0)}
+  .sheet .grab{display:block;width:40px;height:5px;border-radius:3px;background:var(--line);margin:4px auto 10px}
+}
 </style>
 </head>
 <body>
@@ -207,8 +218,9 @@ a{color:var(--accent)}
     </div>
     <span class="label plabel">Проєкти</span>
     <nav class="scroller" id="projects" aria-label="Проєкти"></nav>
+    <button class="pswitch" id="pswitch" aria-label="Обрати проєкт"><span class="pdot" id="pswDot"></span><span class="pname" id="pswName"></span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
     <div class="topright">
-      <span class="conn mono"><i></i><span>Claude підключено</span></span>
+      <span class="conn mono" title="Claude підключено"><i></i><span>Claude підключено</span></span>
       <button class="iconbtn" id="theme" aria-label="Перемкнути тему"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
       <div class="avatar" aria-hidden="true">І</div>
     </div>
@@ -216,21 +228,29 @@ a{color:var(--accent)}
 
   <div class="subbar">
     <div class="projname"><span class="label">Проєкт</span><b id="pname"></b></div>
-    <nav class="modules" aria-label="Модулі проєкту"><span class="label">Модулі</span><span id="modules" style="display:flex;gap:6px"></span><button class="mtab add" id="addmod">+ модуль</button></nav>
+    <nav class="modules" aria-label="Плагіни проєкту"><span class="label">Модулі</span><span id="modules" style="display:flex;gap:6px"></span><button class="mtab add" id="addmod">+ модуль</button></nav>
   </div>
 
-  <div class="body tab-board" id="body">
+  <div class="mfilters">
+    <div class="seg" role="group" aria-label="Що показати">
+      <button id="segIdeas">Ідеї<span class="n" id="segIdeasN"></span></button>
+      <button id="segNotes">Нотатки<span class="n" id="segNotesN"></span></button>
+    </div>
+    <div class="mchips" id="mchips" role="group" aria-label="Плагін"></div>
+  </div>
+
+  <div class="body" id="body">
     <aside class="side">
       <button class="shead" id="hIdeas" aria-expanded="true">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/></svg>
         Ідеї<span class="cnt" id="cIdeas"></span><svg class="dd" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
       </button>
-      <div class="slist" id="sIdeas"></div>
-      <button class="shead" id="hNotes" aria-expanded="false">
+      <div id="sIdeas"></div>
+      <button class="shead" id="hNotes" aria-expanded="true">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 4h10l4 4v12H5z"/><path d="M9 12h6M9 16h4"/></svg>
         Нотатки<span class="cnt" id="cNotes"></span><svg class="dd" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
       </button>
-      <div class="slist" id="sNotes" hidden></div>
+      <div id="sNotes"></div>
       <div class="msearch">
         <span class="label">Пошук модулів</span>
         <label class="field">
@@ -244,37 +264,41 @@ a{color:var(--accent)}
     <main class="main">
       <div class="mainhead">
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><h1 id="btitle"></h1><button class="btn" id="viewreset" hidden style="height:32px;font-size:13px">× Уся дошка</button></div>
-        <div style="display:flex;gap:8px">
-                    <button class="btn dark" id="askd">Спитати агента</button>
-        </div>
+        <button class="btn dark" id="askd">Спитати агента</button>
       </div>
-      <div class="canvas"><div class="addwrap"><button class="addfab" id="addcard" aria-label="Додати ідею"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span class="addtip" id="addtip">Ідея</span></button></div><div class="plane" id="plane"></div></div>
+      <div class="canvas" id="canvas">
+        <div class="addwrap"><button class="addfab" id="addcard" aria-label="Додати"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span class="addtip" id="addtip">Ідея</span></button></div>
+        <div class="plane" id="plane"></div>
+        <div class="mlist" id="mlist"></div>
+      </div>
     </main>
-
-    <section class="mview ideas" aria-label="Ідеї"><h1>Ідеї</h1><div class="chips" id="mIdeasMods" role="group" aria-label="Модуль"></div><div id="mIdeas" style="display:flex;flex-direction:column;gap:8px"></div><button class="madd" data-add="idea">+ Нова ідея</button></section>
-    <section class="mview notes" aria-label="Нотатки"><h1>Нотатки</h1><div class="chips" id="mNotesMods" role="group" aria-label="Модуль"></div><div id="mNotes" style="display:flex;flex-direction:column;gap:8px"></div>
-      <div style="display:flex;gap:8px"><button class="madd" data-add="note">+ Нотатка</button><button class="mic" aria-label="Записати голосову нотатку"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button></div>
-    </section>
-    <section class="mview mods" aria-label="Пошук модулів"><h1>Пошук модулів</h1>
-      <label class="mrow" style="justify-content:flex-start"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="color:var(--faint)"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q2" placeholder="Фінанси, продажі…" aria-label="Пошук модулів" style="border:0;background:transparent;outline:none;width:100%;font-size:15px;color:var(--ink)"></label>
-      <div id="mres2" style="display:flex;flex-direction:column;gap:8px"></div>
-    </section>
   </div>
-
-  <nav class="tabbar" aria-label="Розділи" id="tabbar"></nav>
 </div>
 
-<button class="fab" id="askm">Агент</button>
+<nav class="mbar" aria-label="Дії">
+  <button class="mside" id="magent"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3l2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2z"/></svg>Агент</button>
+  <button class="mplus" id="mplus" aria-label="Додати"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+  <button class="mside r" id="mplugins"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 17.5h7M17.5 14v7"/></svg>Модулі</button>
+</nav>
+
 <div class="agent" id="agent" role="dialog" aria-label="Агент-експерт">
   <div class="row"><span class="label" style="color:#9FA4AB">Агент-експерт · <span id="amod"></span></span><button class="x" id="aclose" aria-label="Закрити">×</button></div>
   <p id="atext"></p>
   <span class="mono" style="font-size:11px;color:#8A8F96">демо: у продукті відповідь прийде з Claude через MCP</span>
 </div>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="shTitle">
+  <div class="grab" aria-hidden="true"></div>
+  <div class="shtop"><h2 id="shTitle"></h2><button class="shx" id="shClose" aria-label="Закрити">×</button></div>
+  <div id="shBody"></div>
+</div>
+
 <div class="ver mono">ескіз v2 · демо-дані · зміни зберігаються лише у вашому браузері</div>
 
 <script>
 (function(){
-  var KEY = 'sketch-v2-state-c';
+  var KEY = 'sketch-v2-state-d';
   var P = [
     {name:'Застосунок для сну', letter:'С', color:'#0B6B52'},
     {name:"Кав'ярня Львів", letter:'К', color:'#2F5BD3'},
@@ -288,15 +312,14 @@ a{color:var(--accent)}
     {name:'Фінанси', color:'#A16207', bg:'rgba(161,98,7,.12)'}
   ];
   var EXTRA = ['Продажі B2B','Найм','Психологія · скоро'];
-  // one entity — an idea — moving through statuses
   var STATUS = {
-    'нова':           {label:'Ідея · нова',     cls:'b-idea'},
-    'у тесті':        {label:'Тест триває',     cls:'b-test'},
-    'немає вердикту': {label:'Немає вердикту',  cls:'b-none'},
-    'спрацювало':     {label:'Спрацювало',      cls:'b-ok'}
+    'нова':           {label:'Ідея · нова',    cls:'b-idea', group:'Нові ідеї',     dot:'var(--faint)'},
+    'у тесті':        {label:'Тест триває',    cls:'b-test', group:'Тести тривають', dot:'var(--blue)'},
+    'немає вердикту': {label:'Немає вердикту', cls:'b-none', group:'Чекають даних', dot:'var(--orange)'},
+    'спрацювало':     {label:'Спрацювало',     cls:'b-ok',   group:'Спрацювало',    dot:'var(--accent)'}
   };
+  var ORDER = ['немає вердикту', 'у тесті', 'нова', 'спрацювало'];
 
-  // ideas[project][module | 'g'] = [{t, s, b}]
   var SEED_IDEAS = [
     {
       0:[
@@ -338,225 +361,361 @@ a{color:var(--accent)}
     { 1:[{t:'Думки про продукт',m:'10.10'}] }
   ];
   var AGENT = {
-    all:'На дошці 2 ідеї без вердикту: «TikTok для Польщі» і «Ціна у злотих». Обом бракує даних — пропоную спершу добрати їх, а не вирішувати навмання.',
-    0:'Ідея «Пейвол після 3-го дня» ще без тесту. Пропоную: A/B на 50% нових користувачів, поріг «не спрацювало» — конверсія нижча за контроль, перевірка через 14 днів.',
+    all:'Дві ідеї чекають даних: «TikTok для Польщі» і «Ціна у злотих». Пропоную спершу добрати дані, а не вирішувати навмання.',
+    0:'Ідея «Пейвол після 3-го дня» ще без тесту. Пропоную A/B на 50% нових користувачів, поріг «не спрацювало» — конверсія нижча за контроль, перевірка через 14 днів.',
     1:'Для рішення про Німеччину бракує трьох речей: ціни конкурентів, вартість локалізації, CPM у DE. Без них вердикту немає.',
     2:'Утримання 7-го дня: даних за 2 тижні замало для висновку про тренд. Повернуся, коли буде ≥ 4 когорти.',
     3:'Режим «тихої години» — перевірте спершу на 5 інтерв’ю, чи це болить користувачам.',
     4:'Ціна у злотих: вердикту немає, потрібні дані про конверсію за ціновими групами.'
   };
+  var AGENT_BY_STATUS = {
+    'нова':'Щоб перевірити цю ідею, сформулюймо гіпотезу, поріг «не спрацювало» і дату перевірки. Тоді вона стане тестом.',
+    'у тесті':'Тест триває. Не робимо висновків до дати перевірки — інакше ризик побачити шум замість ефекту.',
+    'немає вердикту':'Вердикту немає: даних замало. Скажіть, які дані можна добрати за тиждень — і я перевірю ще раз.',
+    'спрацювало':'Рішення записано. Пропоную через місяць перевірити, чи ефект тримається.'
+  };
 
   function clone(o){ return JSON.parse(JSON.stringify(o)); }
   function load(){ try { var s = localStorage.getItem(KEY); return s ? JSON.parse(s) : null; } catch(e){ return null; } }
   function save(){ try { localStorage.setItem(KEY, JSON.stringify(st)); } catch(e){} }
-  var st = load() || {p:0, view:{kind:'ideas', m:'all'}, gIdeas:0, gNotes:0, tab:'board',
-    ideas:clone(SEED_IDEAS), notes:clone(SEED_NOTES), mods:[[0,1,2,3,4],[0,1],[1]]};
+  var st = load() || {p:0, view:{kind:'ideas', m:'all'}, ideas:clone(SEED_IDEAS), notes:clone(SEED_NOTES), mods:[[0,1,2,3,4],[0,1],[1]]};
 
+  var mq = window.matchMedia('(max-width: 860px)');
+  function isPhone(){ return mq.matches; }
   function el(tag, attrs, html){ var e = document.createElement(tag); for (var k in (attrs||{})) e.setAttribute(k, attrs[k]); if (html != null) e.innerHTML = html; return e; }
   function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
   var $ = function(id){ return document.getElementById(id); };
   function bucket(store, p, m){ store[p] = store[p] || {}; return store[p][m] = store[p][m] || []; }
   function total(store, p){ return st.mods[p].reduce(function(a, m){ return a + bucket(store, p, m).length; }, bucket(store, p, 'g').length); }
   function V(){ var v = st.view || {kind:'ideas', m:'all'}; if (v.m !== 'all' && st.mods[st.p].indexOf(v.m) < 0) v = st.view = {kind:v.kind || 'ideas', m:'all'}; return v; }
-  function modName(mi){ return mi === 'g' ? 'загальна' : M[mi].name; }
+  function setView(kind, m){ st.view = {kind:kind, m:m}; save(); render(); }
+  function modName(mi){ return mi === 'g' ? 'Загальна' : M[mi].name; }
+  function plugHTML(mi){ return mi === 'g' ? '<span class="meta mono">Загальна</span>' : '<span class="meta mono plug"><i style="background:'+M[mi].color+'"></i>'+esc(M[mi].name)+'</span>'; }
+
+  function entriesFor(v){
+    var store = v.kind === 'notes' ? st.notes : st.ideas;
+    var mods = v.m === 'all' ? st.mods[st.p].concat(['g']) : [v.m];
+    var out = [];
+    mods.forEach(function(mi){ bucket(store, st.p, mi).forEach(function(c){ out.push({c:c, mi:mi}); }); });
+    return out;
+  }
+
+  function cardHTML(v, e, compact){
+    var c = e.c;
+    if (v.kind === 'notes')
+      return '<span class="badge b-note">Нотатка</span><h2>'+esc(c.t)+'</h2>' + (compact
+        ? '<div class="foot">'+plugHTML(e.mi)+'<span class="meta mono">'+esc(c.m)+'</span></div>'
+        : plugHTML(e.mi)+'<span class="meta mono">'+esc(c.m)+'</span>');
+    var S = STATUS[c.s] || STATUS['нова'];
+    return (compact ? '' : '<span class="badge '+S.cls+'">'+S.label+'</span>') + '<h2>'+esc(c.t)+'</h2>' + (c.b ? '<p>'+esc(c.b)+'</p>' : '') +
+      (compact ? '<div class="foot">'+plugHTML(e.mi)+'<span class="badge '+S.cls+'">'+S.label+'</span></div>' : plugHTML(e.mi));
+  }
 
   function render(){
-    var active = st.mods[st.p], v = V();
+    var active = st.mods[st.p], v = V(), phone = isPhone();
 
-    // projects
+    // projects (desktop tabs + phone switcher)
     var pr = $('projects'); pr.innerHTML = '';
     P.forEach(function(p, i){
       var b = el('button', {'class':'ptab','aria-current': String(i===st.p)}, '<span class="pdot" style="background:'+p.color+'">'+p.letter+'</span>'+esc(p.name));
-      b.onclick = function(){ st.p = i; st.view = {kind:'ideas', m:'all'}; save(); render(); };
+      b.onclick = function(){ st.p = i; setView('ideas', 'all'); };
       pr.appendChild(b);
     });
     var add = el('button', {'class':'addbtn','aria-label':'Новий проєкт'}, '+');
     add.onclick = function(){ toast('Створення проєкту — у наступній версії'); };
     pr.appendChild(add);
     $('pname').textContent = P[st.p].name;
+    $('pswName').textContent = P[st.p].name;
+    $('pswDot').textContent = P[st.p].letter; $('pswDot').style.background = P[st.p].color;
 
-    // module tabs = filter of the board
+    // desktop plugin tabs
     var mm = $('modules'); mm.innerHTML = '';
     active.forEach(function(mi){
       var m = M[mi], on = v.m === mi;
       var b = el('button', {'class':'mtab','aria-current': String(on)}, '<i style="background:'+m.color+'"></i>'+m.name);
       if (on) { b.style.borderColor = m.color; b.style.background = m.bg; }
-      b.onclick = function(){ st.view = on ? {kind:'ideas', m:'all'} : {kind:'ideas', m:mi}; st.gIdeas = mi; st.tab = 'board'; save(); render(); };
+      b.onclick = function(){ on ? setView('ideas', 'all') : setView('ideas', mi); };
       mm.appendChild(b);
     });
 
-    // board entries
+    // phone filters
+    $('segIdeasN').textContent = total(st.ideas, st.p);
+    $('segNotesN').textContent = total(st.notes, st.p);
+    $('segIdeas').setAttribute('aria-pressed', String(v.kind === 'ideas'));
+    $('segNotes').setAttribute('aria-pressed', String(v.kind === 'notes'));
+    var mc = $('mchips'); mc.innerHTML = '';
     var store = v.kind === 'notes' ? st.notes : st.ideas;
-    var mods = v.m === 'all' ? active.concat(['g']) : [v.m];
+    var allChip = el('button', {'class':'chip','aria-pressed': String(v.m === 'all')}, 'Усі <span class="n">'+total(store, st.p)+'</span>');
+    allChip.onclick = function(){ setView(v.kind, 'all'); };
+    mc.appendChild(allChip);
+    active.forEach(function(mi){
+      var on = v.m === mi;
+      var c = el('button', {'class':'chip','aria-pressed': String(on)}, '<i style="background:'+M[mi].color+'"></i>'+M[mi].name+' <span class="n">'+bucket(store, st.p, mi).length+'</span>');
+      if (on) { c.style.borderColor = M[mi].color; c.style.background = M[mi].bg; }
+      c.onclick = function(){ setView(v.kind, on ? 'all' : mi); };
+      mc.appendChild(c);
+    });
+    var addChip = el('button', {'class':'chip add','aria-label':'Додати модуль'}, '+');
+    addChip.onclick = openPlugins;
+    mc.appendChild(addChip);
+    var pressed = mc.querySelector('[aria-pressed="true"]');
+    if (pressed && phone) pressed.scrollIntoView({inline:'nearest', block:'nearest'});
+
+    // board
+    var entries = entriesFor(v);
+    $('btitle').textContent = (v.kind === 'notes'
+      ? (v.m === 'all' ? 'Усі нотатки' : 'Нотатки · ' + M[v.m].name)
+      : (v.m === 'all' ? 'Дошка · усі ідеї' : 'Дошка · ' + M[v.m].name)) + ' · ' + entries.length;
+    $('viewreset').hidden = v.kind === 'ideas' && v.m === 'all';
+    if (phone) renderList(v, entries); else renderPlane(v, entries);
+
+    var tip = v.m === 'all' ? (v.kind === 'notes' ? 'Загальна нотатка' : 'Загальна ідея') : (v.kind === 'notes' ? 'Нотатка · ' : 'Ідея · ') + M[v.m].name;
+    $('addtip').textContent = tip; $('addcard').title = 'Додати: ' + tip; $('addcard').setAttribute('aria-label', 'Додати: ' + tip);
+
+    // desktop sidebar
+    $('cIdeas').textContent = total(st.ideas, st.p);
+    $('cNotes').textContent = total(st.notes, st.p);
+    var oi = st.openIdeas !== false, on2 = st.openNotes !== false;
+    $('hIdeas').setAttribute('aria-expanded', String(oi));
+    $('hNotes').setAttribute('aria-expanded', String(on2));
+    $('hIdeas').classList.toggle('on', v.kind === 'ideas' && v.m === 'all');
+    $('hNotes').classList.toggle('on', v.kind === 'notes' && v.m === 'all');
+    $('sIdeas').hidden = !oi; $('sNotes').hidden = !on2;
+    sideGroup('sIdeas', 'ideas'); sideGroup('sNotes', 'notes');
+    renderSearch($('q').value, $('mres'));
+    $('amod').textContent = v.m === 'all' ? 'усі плагіни' : M[v.m].name;
+  }
+
+  function renderPlane(v, entries){
     var kx = v.m === 'all' ? 'ax' : 'x', ky = v.m === 'all' ? 'ay' : 'y';
-    var entries = [];
-    mods.forEach(function(mi){ bucket(store, st.p, mi).forEach(function(c){ entries.push({c:c, mi:mi}); }); });
     var placed = entries.filter(function(e){ return e.c[kx] != null; });
     var baseY = placed.length ? placed.reduce(function(m, e){ return Math.max(m, e.c[ky]); }, 0) + 200 : 40, k = 0;
     entries.forEach(function(e){ if (e.c[kx] == null) { e.c[kx] = 40 + (k % 3) * 300; e.c[ky] = baseY + Math.floor(k / 3) * 200; k++; } });
-
-    $('btitle').textContent = v.kind === 'notes'
-      ? (v.m === 'all' ? 'Усі нотатки' : 'Нотатки · ' + M[v.m].name)
-      : (v.m === 'all' ? 'Дошка · усі ідеї' : 'Дошка · ' + M[v.m].name);
-    $('btitle').textContent += ' · ' + entries.length;
-    $('viewreset').hidden = v.kind === 'ideas' && v.m === 'all';
-
     var plane = $('plane'); plane.innerHTML = '';
-    if (!entries.length) plane.appendChild(el('p', {'class':'empty','style':'position:absolute;left:40px;top:40px;margin:0'},
-      v.kind === 'notes' ? 'Тут ще немає нотаток. Натисніть «+» у кутку дошки.' : 'Тут ще немає ідей. Натисніть «+» у кутку дошки.'));
-    function plug(mi){ return mi === 'g' ? '<span class="meta mono">Загальна</span>' : '<span class="meta mono" style="display:flex;align-items:center;gap:6px"><i style="width:8px;height:8px;border-radius:2px;display:block;background:'+M[mi].color+'"></i>'+esc(M[mi].name)+'</span>'; }
+    if (!entries.length) plane.appendChild(el('p', {'class':'empty','style':'position:absolute;left:40px;top:40px;margin:0'}, 'Тут поки порожньо. Натисніть «+» у кутку дошки.'));
     entries.forEach(function(e){
-      var c = e.c, html;
-      if (v.kind === 'notes') html = '<span class="badge b-note">Нотатка</span><h2>'+esc(c.t)+'</h2>'+plug(e.mi)+'<span class="meta mono">'+esc(c.m)+'</span>';
-      else { var S = STATUS[c.s] || STATUS['нова']; html = '<span class="badge '+S.cls+'">'+S.label+'</span><h2>'+esc(c.t)+'</h2>'+(c.b?'<p>'+esc(c.b)+'</p>':'')+plug(e.mi); }
-      var a = el('article', {'class':'card','style':'left:'+c[kx]+'px;top:'+c[ky]+'px'}, html);
-      drag(a, c, kx, ky);
+      var a = el('article', {'class':'card','style':'left:'+e.c[kx]+'px;top:'+e.c[ky]+'px','tabindex':'0'}, cardHTML(v, e, false));
+      drag(a, e, kx, ky, v);
+      a.onkeydown = function(ev){ if (ev.key === 'Enter') openCard(v.kind, e); };
       plane.appendChild(a);
     });
+  }
 
-    var tip = v.m === 'all' ? (v.kind === 'notes' ? 'Загальна нотатка' : 'Загальна ідея')
-      : (v.kind === 'notes' ? 'Нотатка · ' : 'Ідея · ') + M[v.m].name;
-    $('addtip').textContent = tip; $('addcard').setAttribute('aria-label', 'Додати: ' + tip); $('addcard').title = 'Додати: ' + tip;
-
-    // sidebar
-    $('cIdeas').textContent = total(st.ideas, st.p);
-    $('cNotes').textContent = total(st.notes, st.p);
-    var oi = st.openIdeas !== false, on = st.openNotes !== false;
-    $('hIdeas').setAttribute('aria-expanded', String(oi));
-    $('hNotes').setAttribute('aria-expanded', String(on));
-    $('hIdeas').classList.toggle('on', v.kind === 'ideas' && v.m === 'all');
-    $('hNotes').classList.toggle('on', v.kind === 'notes' && v.m === 'all');
-    $('sIdeas').hidden = !oi; $('sNotes').hidden = !on;
-    sideGroup('sIdeas', 'ideas');
-    sideGroup('sNotes', 'notes');
-
-    // mobile lists
-    mobileGroup('mIdeasMods', 'mIdeas', 'ideas');
-    mobileGroup('mNotesMods', 'mNotes', 'notes');
-    renderSearch('q','mres'); renderSearch('q2','mres2');
-
-    $('body').className = 'body tab-' + st.tab;
-    var T = [
-      ['board','Дошка','M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z'],
-      ['ideas','Ідеї','M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z'],
-      ['notes','Нотатки','M5 4h10l4 4v12H5zM9 12h6M9 16h4'],
-      ['modules','Модулі','M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4']
-    ];
-    var tb = $('tabbar'); tb.innerHTML = '';
-    T.forEach(function(t){
-      var b = el('button', {'aria-current': String(st.tab===t[0])}, '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="'+t[2]+'"/></svg><span>'+t[1]+'</span>');
-      b.onclick = function(){ st.tab = t[0]; save(); render(); };
-      tb.appendChild(b);
+  function renderList(v, entries){
+    var list = $('mlist'); list.innerHTML = '';
+    if (!entries.length) {
+      list.appendChild(el('p', {'class':'empty','style':'text-align:center;padding:40px 16px'}, (v.kind === 'notes' ? 'Нотаток' : 'Ідей') + ' тут ще немає.<br>Натисніть «+» внизу, щоб додати.'));
+      return;
+    }
+    function card(e){
+      var b = el('button', {'class':'card mcard'}, cardHTML(v, e, true));
+      b.onclick = function(){ openCard(v.kind, e); };
+      list.appendChild(b);
+    }
+    if (v.kind === 'notes') { entries.slice().reverse().forEach(card); return; }
+    ORDER.forEach(function(s){
+      var g = entries.filter(function(e){ return (e.c.s || 'нова') === s; });
+      if (!g.length) return;
+      list.appendChild(el('div', {'class':'grp'}, '<i style="background:'+STATUS[s].dot+'"></i>'+STATUS[s].group+' <span class="n">'+g.length+'</span>'));
+      g.forEach(card);
     });
-    $('amod').textContent = v.m === 'all' ? 'усі плагіни' : M[v.m].name;
+    list.appendChild(el('div', {'class':'hint'}, 'Натисніть на картку, щоб змінити статус'));
   }
 
   function sideGroup(boxId, kind){
     var store = kind === 'ideas' ? st.ideas : st.notes, v = V();
     var box = $(boxId); box.innerHTML = '';
     var active = st.mods[st.p];
-    var groups = el('div', {'class':'groups','role':'group','aria-label': kind==='ideas' ? 'Ідеї за плагінами' : 'Нотатки за плагінами'});
+    var groups = el('div', {'class':'groups','role':'group'});
     active.forEach(function(mi){
       var on = v.kind === kind && v.m === mi;
-      var b = el('button', {'class':'grow','aria-pressed': String(on)},
-        '<i style="background:'+M[mi].color+'"></i>' + M[mi].name + '<span class="n">'+bucket(store, st.p, mi).length+'</span>');
-      b.onclick = function(){ st.view = {kind: kind, m: mi}; st.tab = 'board'; save(); render(); };
+      var b = el('button', {'class':'grow','aria-pressed': String(on)}, '<i style="background:'+M[mi].color+'"></i>' + M[mi].name + '<span class="n">'+bucket(store, st.p, mi).length+'</span>');
+      b.onclick = function(){ setView(kind, mi); };
       groups.appendChild(b);
     });
     box.appendChild(groups);
     if (active.length > 3) box.appendChild(el('div', {'class':'scrollhint'}, 'ще ' + (active.length - 3) + ' — гортайте список ↕'));
   }
 
-  function mobileGroup(chipsId, listId, kind){
-    var store = kind === 'ideas' ? st.ideas : st.notes;
-    var key = kind === 'ideas' ? 'gIdeas' : 'gNotes';
-    if (st.mods[st.p].indexOf(st[key]) < 0) st[key] = st.mods[st.p][0];
-    var chips = $(chipsId); chips.innerHTML = '';
-    st.mods[st.p].forEach(function(mi){
-      var on = st[key] === mi;
-      var c = el('button', {'class':'chip','aria-pressed': String(on)}, '<i style="background:'+M[mi].color+'"></i>'+M[mi].name+' <span class="n">'+bucket(store, st.p, mi).length+'</span>');
-      if (on) { c.style.borderColor = M[mi].color; c.style.background = M[mi].bg; }
-      c.onclick = function(){ st[key] = mi; save(); render(); };
-      chips.appendChild(c);
-    });
-    var list = $(listId); list.innerHTML = '';
-    var items = bucket(store, st.p, st[key]);
-    if (!items.length) list.appendChild(el('div', {'class':'empty'}, 'У плагіні «'+M[st[key]].name+'» поки порожньо'));
-    items.forEach(function(it){
-      var b = el('button', {'class':'mrow'}, kind==='ideas'
-        ? '<span>'+esc(it.t)+'</span><small class="'+(it.s==='у тесті'?'test':'')+'">'+it.s+'</small>'
-        : '<span>'+esc(it.t)+'</span><small>'+esc(it.m)+'</small>');
-      b.onclick = function(){ st.view = {kind: kind, m: st[key]}; st.tab = 'board'; save(); render(); };
-      list.appendChild(b);
-    });
-  }
-
-  function renderSearch(qid, rid){
-    var q = ($(qid).value || '').toLowerCase().trim();
+  function renderSearch(q, r){
+    q = (q || '').toLowerCase().trim();
     var have = st.mods[st.p].map(function(i){ return M[i].name; });
     var all = M.map(function(m){ return m.name; }).concat(EXTRA);
-    var r = $(rid); r.innerHTML = '';
+    r.innerHTML = '';
     all.filter(function(n){ return !q || n.toLowerCase().indexOf(q) >= 0; })
        .sort(function(a, b){ return (have.indexOf(a) >= 0) - (have.indexOf(b) >= 0); })
-       .slice(0, q ? 8 : 3).forEach(function(n){
+       .slice(0, q ? 8 : (r.id === 'mres' ? 3 : 8)).forEach(function(n){
       var idx = -1; M.forEach(function(m, i){ if (m.name === n) idx = i; });
       var added = have.indexOf(n) >= 0, soon = n.indexOf('скоро') >= 0;
-      var row = el('div', {'class': rid==='mres2' ? 'mrow' : 'mres'}, '<span>'+esc(n)+'</span>');
+      var row = el('div', {'class':'mres'}, '<span>'+esc(n)+'</span>');
+      if (r.id !== 'mres') row.setAttribute('style', 'min-height:52px;padding:0 4px;border-bottom:1px solid var(--line2);font-size:15px');
       var b = el('button', added||soon ? {'disabled':''} : {}, added ? 'Додано' : soon ? 'Скоро' : 'Додати');
-      if (rid==='mres2') b.setAttribute('style','height:36px;padding:0 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);font-size:13px;font-weight:600;color:'+(added||soon?'var(--faint)':'var(--accent)'));
+      if (r.id !== 'mres') b.setAttribute('style', 'min-height:40px;padding:0 14px;font-size:14px');
       b.onclick = function(){
-        if (idx >= 0) { st.mods[st.p].push(idx); st.view = {kind:'ideas', m:idx}; st.tab = 'board'; save(); render(); }
+        if (idx >= 0) { st.mods[st.p].push(idx); closeSheet(); setView('ideas', idx); toast('Модуль «'+n+'» додано'); }
         else toast('Модуль «'+n+'» — демо: ще не існує');
       };
       row.appendChild(b); r.appendChild(row);
     });
   }
 
-  function addItem(kind, mi){
-    if (mi == null || mi === 'all') mi = 'g';
-    var t = prompt((kind==='ideas' ? 'Нова ідея' : 'Нова нотатка') + ' · ' + modName(mi) + ':');
-    if (!t) return;
-    if (kind === 'ideas') { bucket(st.ideas, st.p, mi).push({t:t, s:'нова', b:''}); st.openIdeas = true; }
-    else { bucket(st.notes, st.p, mi).push({t:t, m:'щойно'}); st.openNotes = true; }
-    save(); render();
-    setTimeout(function(){ var c = document.querySelector('.canvas'); if (c) c.scrollTo({top: c.scrollHeight, behavior: 'smooth'}); }, 50);
-    toast(mi === 'g' ? 'Додано як загальну' : 'Додано в «' + M[mi].name + '»');
+  /* ── sheets ── */
+  var lastFocus;
+  function openSheet(title, body){
+    lastFocus = document.activeElement;
+    $('shTitle').textContent = title;
+    var b = $('shBody'); b.innerHTML = ''; b.appendChild(body);
+    $('scrim').classList.add('open'); $('sheet').classList.add('open');
+    setTimeout(function(){ var f = $('sheet').querySelector('input,textarea'); (f || $('shClose')).focus(); }, 60);
+  }
+  function closeSheet(){
+    $('scrim').classList.remove('open'); $('sheet').classList.remove('open');
+    if (lastFocus && lastFocus.focus) try { lastFocus.focus(); } catch(e){}
+  }
+  $('scrim').onclick = closeSheet; $('shClose').onclick = closeSheet;
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') { closeSheet(); $('agent').classList.remove('open'); } });
+
+  function optRow(items, current, onPick){
+    var wrap = el('div', {'class':'opts'});
+    items.forEach(function(it){
+      var b = el('button', {'class':'opt','aria-pressed': String(it.v === current)}, (it.color ? '<i style="background:'+it.color+'"></i>' : '') + esc(it.label));
+      b.onclick = function(){ wrap.querySelectorAll('.opt').forEach(function(x){ x.setAttribute('aria-pressed', 'false'); }); b.setAttribute('aria-pressed', 'true'); onPick(it.v); };
+      wrap.appendChild(b);
+    });
+    return wrap;
+  }
+  function plugOptions(){ return [{v:'g', label:'Загальна'}].concat(st.mods[st.p].map(function(mi){ return {v:mi, label:M[mi].name, color:M[mi].color}; })); }
+
+  function openAdd(){
+    var v = V(), kind = v.kind, mi = v.m === 'all' ? 'g' : v.m;
+    var body = el('div');
+    var t = el('input', {'class':'inp','placeholder': 'Коротко: що за ідея?','aria-label':'Назва'});
+    var d = el('textarea', {'class':'inp','rows':'3','placeholder':'Деталі (необов’язково)','aria-label':'Деталі'});
+    var s1 = el('div', {'class':'shsec'}, '<span class="label">Тип</span>');
+    s1.appendChild(optRow([{v:'ideas', label:'Ідея'}, {v:'notes', label:'Нотатка'}], kind, function(x){ kind = x; t.placeholder = x === 'ideas' ? 'Коротко: що за ідея?' : 'Що записати?'; }));
+    var s2 = el('div', {'class':'shsec'}, '<span class="label">Плагін</span>');
+    s2.appendChild(optRow(plugOptions(), mi, function(x){ mi = x; }));
+    var ok = el('button', {'class':'primary'}, 'Зберегти');
+    function submit(){
+      var title = t.value.trim(); if (!title) { t.focus(); return; }
+      if (kind === 'ideas') bucket(st.ideas, st.p, mi).push({t:title, s:'нова', b:d.value.trim()});
+      else bucket(st.notes, st.p, mi).push({t:title, m:'щойно'});
+      st.view = {kind:kind, m: v.m === 'all' ? 'all' : mi};
+      save(); closeSheet(); render();
+      setTimeout(function(){ var c = $('canvas'); c.scrollTo({top: isPhone() && kind === 'notes' ? 0 : c.scrollHeight, behavior:'smooth'}); }, 60);
+      toast((kind === 'ideas' ? 'Ідею' : 'Нотатку') + ' додано · ' + modName(mi));
+    }
+    ok.onclick = submit;
+    t.onkeydown = function(e){ if (e.key === 'Enter') submit(); };
+    body.appendChild(t); body.appendChild(el('div', {'style':'height:8px'})); body.appendChild(d);
+    body.appendChild(s1); body.appendChild(s2); body.appendChild(ok);
+    openSheet('Додати', body);
   }
 
-  function drag(a, c, kx, ky){
-    var sx, sy, ox, oy, on = false;
-    a.addEventListener('pointerdown', function(e){
-      if (window.matchMedia('(max-width: 860px)').matches) return;
-      on = true; sx = e.clientX; sy = e.clientY; ox = c[kx]; oy = c[ky]; a.classList.add('drag'); a.setPointerCapture(e.pointerId);
+  function openCard(kind, e){
+    var c = e.c, body = el('div');
+    if (c.b) body.appendChild(el('p', {'style':'margin:0 0 4px;font-size:15px;line-height:1.55;color:var(--muted);white-space:pre-line'}, esc(c.b)));
+    body.appendChild(el('div', {'style':'margin-top:6px'}, plugHTML(e.mi) + (kind === 'notes' ? '<span class="meta mono" style="display:block;margin-top:4px">'+esc(c.m)+'</span>' : '')));
+    if (kind === 'ideas') {
+      var s = el('div', {'class':'shsec'}, '<span class="label">Статус</span>');
+      s.appendChild(optRow(Object.keys(STATUS).map(function(k){ return {v:k, label:k === 'нова' ? 'Нова' : STATUS[k].label}; }), c.s || 'нова', function(x){ c.s = x; save(); render(); toast('Статус: ' + STATUS[x].label); }));
+      body.appendChild(s);
+    }
+    var acts = el('div', {'class':'shsec'}, '<span class="label">Дії</span>');
+    var row = el('div', {'class':'opts'});
+    var ask = el('button', {'class':'ghost'}, 'Спитати агента');
+    ask.onclick = function(){ closeSheet(); openAgent(kind === 'ideas' ? AGENT_BY_STATUS[c.s || 'нова'] : 'Ця нотатка може стати ідеєю: що з неї варто перевірити?', c.t); };
+    row.appendChild(ask);
+    if (kind === 'notes') {
+      var toIdea = el('button', {'class':'ghost'}, 'Зробити ідеєю');
+      toIdea.onclick = function(){ remove(st.notes, e); bucket(st.ideas, st.p, e.mi).push({t:c.t, s:'нова', b:''}); st.view = {kind:'ideas', m:e.mi === 'g' ? 'all' : e.mi}; save(); closeSheet(); render(); toast('Нотатку перетворено на ідею'); };
+      row.appendChild(toIdea);
+    }
+    var del = el('button', {'class':'ghost danger'}, 'Видалити');
+    del.onclick = function(){
+      if (del.dataset.armed) { remove(kind === 'ideas' ? st.ideas : st.notes, e); save(); closeSheet(); render(); toast('Видалено'); }
+      else { del.dataset.armed = '1'; del.textContent = 'Точно видалити?'; }
+    };
+    row.appendChild(del);
+    acts.appendChild(row); body.appendChild(acts);
+    openSheet(c.t, body);
+  }
+  function remove(store, e){ var l = bucket(store, st.p, e.mi); var i = l.indexOf(e.c); if (i >= 0) l.splice(i, 1); }
+
+  function openProjects(){
+    var body = el('div', {'class':'rows'});
+    P.forEach(function(p, i){
+      var b = el('button', {'class':'rowbtn','aria-current': String(i === st.p)}, '<span class="pdot" style="background:'+p.color+';width:32px;height:32px;border-radius:8px;font-size:14px">'+p.letter+'</span>'+esc(p.name)+'<span class="n">'+total(st.ideas, i)+' ідей</span>');
+      b.onclick = function(){ st.p = i; st.view = {kind:'ideas', m:'all'}; save(); closeSheet(); render(); };
+      body.appendChild(b);
     });
-    a.addEventListener('pointermove', function(e){ if (!on) return; c[kx] = Math.max(0, ox + e.clientX - sx); c[ky] = Math.max(0, oy + e.clientY - sy); a.style.left = c[kx]+'px'; a.style.top = c[ky]+'px'; });
-    a.addEventListener('pointerup', function(){ if (!on) return; on = false; a.classList.remove('drag'); save(); });
+    var add = el('button', {'class':'rowbtn','style':'border-style:dashed;color:var(--muted)'}, '+ Новий проєкт');
+    add.onclick = function(){ toast('Створення проєкту — у наступній версії'); };
+    body.appendChild(add);
+    openSheet('Проєкти', body);
+  }
+
+  function openPlugins(){
+    var body = el('div');
+    var f = el('label', {'class':'field','style':'min-height:48px'}, '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="color:var(--faint)"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>');
+    var q = el('input', {'placeholder':'Фінанси, продажі…','aria-label':'Пошук модулів','style':'font-size:16px'});
+    f.appendChild(q);
+    var res = el('div', {'id':'mres2','style':'margin-top:8px'});
+    q.oninput = function(){ renderSearch(q.value, res); };
+    body.appendChild(f); body.appendChild(res);
+    renderSearch('', res);
+    openSheet('Модулі', body);
+  }
+
+  /* ── desktop drag (click without movement opens the card) ── */
+  function drag(a, e, kx, ky, v){
+    var c = e.c, sx, sy, ox, oy, on = false, moved = false;
+    a.addEventListener('pointerdown', function(ev){
+      on = true; moved = false; sx = ev.clientX; sy = ev.clientY; ox = c[kx]; oy = c[ky]; a.setPointerCapture(ev.pointerId);
+    });
+    a.addEventListener('pointermove', function(ev){
+      if (!on) return;
+      var dx = ev.clientX - sx, dy = ev.clientY - sy;
+      if (!moved && Math.abs(dx) + Math.abs(dy) < 5) return;
+      moved = true; a.classList.add('drag');
+      c[kx] = Math.max(0, ox + dx); c[ky] = Math.max(0, oy + dy); a.style.left = c[kx]+'px'; a.style.top = c[ky]+'px';
+    });
+    a.addEventListener('pointerup', function(){
+      if (!on) return; on = false; a.classList.remove('drag');
+      if (moved) save(); else openCard(v.kind, e);
+    });
   }
 
   var toastT;
   function toast(msg){
-    var t = $('toast'); if (!t){ t = el('div', {'id':'toast','role':'status','style':'position:fixed;left:50%;top:16px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;z-index:30;max-width:calc(100vw - 32px)'}); document.body.appendChild(t); }
+    var t = $('toast'); if (!t){ t = el('div', {'id':'toast','role':'status','style':'position:fixed;left:50%;top:calc(16px + env(safe-area-inset-top));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 16px;border-radius:12px;font-size:14px;z-index:60;max-width:calc(100vw - 32px);box-shadow:0 10px 30px rgba(0,0,0,.25)'}); document.body.appendChild(t); }
     t.textContent = msg; t.style.display = 'block'; clearTimeout(toastT); toastT = setTimeout(function(){ t.style.display = 'none'; }, 2200);
   }
 
+  function openAgent(text, about){
+    var v = V();
+    $('amod').textContent = about ? '«' + about + '»' : (v.m === 'all' ? 'усі плагіни' : M[v.m].name);
+    $('atext').textContent = text || AGENT[v.m] || AGENT.all;
+    $('agent').classList.add('open');
+  }
+
   function headClick(kind, openKey){
-    var v = V(), showing = v.kind === kind && v.m === 'all';
-    if (showing && st[openKey] !== false) st[openKey] = false;
-    else { st[openKey] = true; st.view = {kind: kind, m: 'all'}; st.tab = 'board'; }
+    var v = V();
+    if (v.kind === kind && v.m === 'all' && st[openKey] !== false) st[openKey] = false;
+    else { st[openKey] = true; st.view = {kind:kind, m:'all'}; }
     save(); render();
   }
   $('hIdeas').onclick = function(){ headClick('ideas', 'openIdeas'); };
   $('hNotes').onclick = function(){ headClick('notes', 'openNotes'); };
-  $('q').oninput = function(){ renderSearch('q','mres'); };
-  $('q2').oninput = function(){ renderSearch('q2','mres2'); };
-  $('addmod').onclick = function(){ st.tab = 'modules'; save(); render(); $('q').focus(); };
-  $('addcard').onclick = function(){ var v = V(); addItem(v.kind, v.m); };
-  $('viewreset').onclick = function(){ st.view = {kind:'ideas', m:'all'}; save(); render(); };
-  document.querySelectorAll('[data-add]').forEach(function(b){
-    b.onclick = function(){ var k = b.getAttribute('data-add') === 'idea' ? 'ideas' : 'notes'; addItem(k, st[k === 'ideas' ? 'gIdeas' : 'gNotes']); };
-  });
-  function openAgent(){ var v = V(); $('atext').textContent = AGENT[v.m] || AGENT.all; $('agent').classList.add('open'); }
-  $('askd').onclick = openAgent; $('askm').onclick = openAgent;
+  $('segIdeas').onclick = function(){ setView('ideas', V().m); };
+  $('segNotes').onclick = function(){ setView('notes', V().m); };
+  $('q').oninput = function(){ renderSearch($('q').value, $('mres')); };
+  $('addmod').onclick = function(){ $('q').focus(); };
+  $('addcard').onclick = openAdd; $('mplus').onclick = openAdd;
+  $('pswitch').onclick = openProjects;
+  $('mplugins').onclick = openPlugins;
+  $('viewreset').onclick = function(){ setView('ideas', 'all'); };
+  $('askd').onclick = function(){ openAgent(); }; $('magent').onclick = function(){ openAgent(); };
   $('aclose').onclick = function(){ $('agent').classList.remove('open'); };
   $('theme').onclick = function(){
     var r = document.documentElement, cur = r.getAttribute('data-theme');
@@ -565,6 +724,7 @@ a{color:var(--accent)}
     try { localStorage.setItem('sketch-theme', dark ? 'light' : 'dark'); } catch(e){}
   };
   try { var th = localStorage.getItem('sketch-theme'); if (th) document.documentElement.setAttribute('data-theme', th); } catch(e){}
+  if (mq.addEventListener) mq.addEventListener('change', render); else mq.addListener(render);
   render();
 })();
 </script>
