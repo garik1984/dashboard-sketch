@@ -273,7 +273,7 @@ a{color:var(--accent)}
 
 <script>
 (function(){
-  var KEY = 'sketch-v2-state-b';
+  var KEY = 'sketch-v2-state-c';
   var P = [
     {name:'Застосунок для сну', letter:'С', color:'#0B6B52'},
     {name:"Кав'ярня Львів", letter:'К', color:'#2F5BD3'},
@@ -287,92 +287,86 @@ a{color:var(--accent)}
     {name:'Фінанси', color:'#A16207', bg:'rgba(161,98,7,.12)'}
   ];
   var EXTRA = ['Продажі B2B','Найм','Психологія · скоро'];
-  var BADGE = {'Ідея':'b-idea','Тест триває':'b-test','Немає вердикту':'b-none','Спрацювало':'b-ok'};
+  // one entity — an idea — moving through statuses
+  var STATUS = {
+    'нова':           {label:'Ідея · нова',     cls:'b-idea'},
+    'у тесті':        {label:'Тест триває',     cls:'b-test'},
+    'немає вердикту': {label:'Немає вердикту',  cls:'b-none'},
+    'спрацювало':     {label:'Спрацювало',      cls:'b-ok'}
+  };
 
-  // board[project][module] = cards
-  var SEED_BOARD = [
-    {
-      0:[
-        {s:'Ідея',t:'Ідея 1 · Пейвол після 3-го дня',b:'Гіпотеза: довший пробний період\nпідвищить конверсію в оплату',m:'з нотатки 12.10',x:40,y:40},
-        {s:'Тест триває',t:'Новий онбординг',b:'Поріг: конверсія ≥ контролю\nПеревірка: [ДАТА]',m:'тест A/B',x:340,y:90},
-        {s:'Немає вердикту',t:'TikTok для Польщі',b:'Даних замало.\nДалі: ще тиждень трафіку',m:'агент',x:640,y:40},
-        {s:'Спрацювало',t:'Річний план зі знижкою',b:'Записано в журнал рішень',m:'рішення',x:180,y:330}
-      ],
-      1:[
-        {s:'Ідея',t:'Вихід у Німеччину',b:'Що треба знати до рішення?\nЦіни, конкуренти, мова',m:'нова',x:60,y:60},
-        {s:'Немає вердикту',t:'Партнерство з клінікою сну',b:'Невідомо: умови партнера',m:'агент',x:380,y:160}
-      ],
-      2:[
-        {s:'Тест триває',t:'Утримання 7-го дня',b:'Ціль: [XX%]\nЗараз: [XX%]',m:'дані',x:60,y:60},
-        {s:'Ідея',t:'Когорти за каналом',b:'Порівняти TikTok і Meta',m:'нова',x:360,y:60}
-      ],
-      3:[{s:'Ідея',t:'Режим «тихої години»',b:'Нагадування за 30 хв до сну',m:'нова',x:60,y:60}],
-      4:[{s:'Немає вердикту',t:'Ціна у злотих',b:'Бракує даних про купівельну спроможність',m:'агент',x:60,y:60}]
-    },
-    {
-      0:[{s:'Ідея',t:'Зимове меню в Instagram',b:'Серія з 5 постів',m:'нова',x:60,y:60},{s:'Тест триває',t:'Знижка до 10:00',b:'Поріг: +15% чеків зранку\nПеревірка: [ДАТА]',m:'тест',x:360,y:120}],
-      1:[{s:'Немає вердикту',t:'Друга точка',b:'Даних про трафік району замало',m:'агент',x:80,y:80}]
-    },
-    {
-      1:[{s:'Ідея',t:'План на квартал',b:'3 цілі, засоби, kill-критерії',m:'нова',x:60,y:60}]
-    }
-  ];
-  // ideas[project][module] = [{t,s}]
+  // ideas[project][module | 'g'] = [{t, s, b}]
   var SEED_IDEAS = [
     {
-      0:[{t:'Пейвол після 3-го дня',s:'нова'},{t:'Новий онбординг',s:'у тесті'},{t:'Хуки для Reels',s:'нова'}],
-      1:[{t:'Запуск у Німеччині',s:'нова'}],
-      2:[{t:'Когорти за каналом',s:'нова'},{t:'Утримання 7-го дня',s:'у тесті'}],
-      3:[{t:'Режим «тихої години»',s:'нова'}],
-      4:[{t:'Ціна у злотих',s:'нова'}]
+      0:[
+        {t:'Пейвол після 3-го дня', s:'нова', b:'Гіпотеза: довший пробний період\nпідвищить конверсію в оплату'},
+        {t:'Новий онбординг', s:'у тесті', b:'Поріг: конверсія ≥ контролю\nПеревірка: [ДАТА]'},
+        {t:'TikTok для Польщі', s:'немає вердикту', b:'Даних замало.\nДалі: ще тиждень трафіку'},
+        {t:'Річний план зі знижкою', s:'спрацювало', b:'Записано в журнал рішень'},
+        {t:'Хуки для Reels', s:'нова', b:''}
+      ],
+      1:[
+        {t:'Запуск у Німеччині', s:'нова', b:'Що треба знати до рішення?\nЦіни, конкуренти, мова'},
+        {t:'Партнерство з клінікою сну', s:'немає вердикту', b:'Невідомо: умови партнера'}
+      ],
+      2:[
+        {t:'Утримання 7-го дня', s:'у тесті', b:'Ціль: [XX%]\nЗараз: [XX%]'},
+        {t:'Когорти за каналом', s:'нова', b:'Порівняти TikTok і Meta'}
+      ],
+      3:[{t:'Режим «тихої години»', s:'нова', b:'Нагадування за 30 хв до сну'}],
+      4:[{t:'Ціна у злотих', s:'немає вердикту', b:'Бракує даних про купівельну спроможність'}],
+      g:[{t:'Назва продукту', s:'нова', b:'Обрати до запуску лендингу'}]
     },
-    { 0:[{t:'Зимове меню',s:'у тесті'}], 1:[{t:'Друга точка',s:'нова'}] },
-    { 1:[{t:'Книга про ціни',s:'нова'}] }
+    {
+      0:[{t:'Зимове меню в Instagram', s:'нова', b:'Серія з 5 постів'},{t:'Знижка до 10:00', s:'у тесті', b:'Поріг: +15% чеків зранку\nПеревірка: [ДАТА]'}],
+      1:[{t:'Друга точка', s:'немає вердикту', b:'Даних про трафік району замало'}]
+    },
+    {
+      1:[{t:'План на квартал', s:'нова', b:'3 цілі, засоби, kill-критерії'}],
+      g:[{t:'Книга про ціни', s:'нова', b:''}]
+    }
   ];
   var SEED_NOTES = [
     {
       0:[{t:'Голосове: відгуки з Польщі',m:'сьогодні · 2 хв'},{t:'Конкурент знизив ціну',m:'вчора'}],
       1:[{t:'Дзвінок з інвестором',m:'14.10'}],
       2:[{t:'Падіння D1 після релізу',m:'13.10'}],
-      3:[{t:'Дзвінок з дизайнером',m:'12.10'}],
-      4:[]
+      3:[{t:'Дзвінок з дизайнером',m:'12.10'}]
     },
-    { 0:[{t:'Постачальник кави',m:'15.10'}], 1:[] },
+    { 0:[{t:'Постачальник кави',m:'15.10'}] },
     { 1:[{t:'Думки про продукт',m:'10.10'}] }
   ];
-  var AGENT = [
-    'Ідея «Пейвол після 3-го дня» ще без тесту. Пропоную: A/B на 50% нових користувачів, поріг «не спрацювало» — конверсія нижча за контроль, перевірка через 14 днів. Додати картку тесту?',
-    'Для рішення про Німеччину бракує трьох речей: ціни конкурентів, вартість локалізації, CPM у DE. Без них вердикту немає.',
-    'Утримання 7-го дня: даних за 2 тижні замало для висновку про тренд. Повернуся, коли буде ≥ 4 когорти.',
-    'Режим «тихої години» — перевірте спершу на 5 інтерв’ю, чи це болить користувачам.',
-    'Ціна у злотих: вердикту немає, потрібні дані про конверсію за ціновими групами.'
-  ];
+  var AGENT = {
+    all:'На дошці 2 ідеї без вердикту: «TikTok для Польщі» і «Ціна у злотих». Обом бракує даних — пропоную спершу добрати їх, а не вирішувати навмання.',
+    0:'Ідея «Пейвол після 3-го дня» ще без тесту. Пропоную: A/B на 50% нових користувачів, поріг «не спрацювало» — конверсія нижча за контроль, перевірка через 14 днів.',
+    1:'Для рішення про Німеччину бракує трьох речей: ціни конкурентів, вартість локалізації, CPM у DE. Без них вердикту немає.',
+    2:'Утримання 7-го дня: даних за 2 тижні замало для висновку про тренд. Повернуся, коли буде ≥ 4 когорти.',
+    3:'Режим «тихої години» — перевірте спершу на 5 інтерв’ю, чи це болить користувачам.',
+    4:'Ціна у злотих: вердикту немає, потрібні дані про конверсію за ціновими групами.'
+  };
 
   function clone(o){ return JSON.parse(JSON.stringify(o)); }
   function load(){ try { var s = localStorage.getItem(KEY); return s ? JSON.parse(s) : null; } catch(e){ return null; } }
   function save(){ try { localStorage.setItem(KEY, JSON.stringify(st)); } catch(e){} }
-  var st = load() || {p:0, m:0, side:'ideas', gIdeas:0, gNotes:0, tab:'board',
-    board:clone(SEED_BOARD), ideas:clone(SEED_IDEAS), notes:clone(SEED_NOTES),
-    mods:[[0,1,2,3,4],[0,1],[1]]};
+  var st = load() || {p:0, view:{kind:'ideas', m:'all'}, gIdeas:0, gNotes:0, tab:'board',
+    ideas:clone(SEED_IDEAS), notes:clone(SEED_NOTES), mods:[[0,1,2,3,4],[0,1],[1]]};
 
   function el(tag, attrs, html){ var e = document.createElement(tag); for (var k in (attrs||{})) e.setAttribute(k, attrs[k]); if (html != null) e.innerHTML = html; return e; }
   function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
   var $ = function(id){ return document.getElementById(id); };
   function bucket(store, p, m){ store[p] = store[p] || {}; return store[p][m] = store[p][m] || []; }
   function total(store, p){ return st.mods[p].reduce(function(a, m){ return a + bucket(store, p, m).length; }, bucket(store, p, 'g').length); }
-  var CHEV = '<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
+  function V(){ var v = st.view || {kind:'ideas', m:'all'}; if (v.m !== 'all' && st.mods[st.p].indexOf(v.m) < 0) v = st.view = {kind:v.kind || 'ideas', m:'all'}; return v; }
+  function modName(mi){ return mi === 'g' ? 'загальна' : M[mi].name; }
 
   function render(){
-    var active = st.mods[st.p];
-    if (active.indexOf(st.m) < 0) st.m = active[0];
-    if (active.indexOf(st.gIdeas) < 0) st.gIdeas = st.m;
-    if (active.indexOf(st.gNotes) < 0) st.gNotes = st.m;
+    var active = st.mods[st.p], v = V();
 
     // projects
     var pr = $('projects'); pr.innerHTML = '';
     P.forEach(function(p, i){
       var b = el('button', {'class':'ptab','aria-current': String(i===st.p)}, '<span class="pdot" style="background:'+p.color+'">'+p.letter+'</span>'+esc(p.name));
-      b.onclick = function(){ st.p = i; st.view = {kind:'board'}; st.m = st.mods[i][0]; st.gIdeas = st.m; st.gNotes = st.m; save(); render(); };
+      b.onclick = function(){ st.p = i; st.view = {kind:'ideas', m:'all'}; save(); render(); };
       pr.appendChild(b);
     });
     var add = el('button', {'class':'addbtn','aria-label':'Новий проєкт'}, '+');
@@ -380,73 +374,65 @@ a{color:var(--accent)}
     pr.appendChild(add);
     $('pname').textContent = P[st.p].name;
 
-    // module tabs
+    // module tabs = filter of the board
     var mm = $('modules'); mm.innerHTML = '';
     active.forEach(function(mi){
-      var m = M[mi], on = mi === st.m;
+      var m = M[mi], on = v.m === mi;
       var b = el('button', {'class':'mtab','aria-current': String(on)}, '<i style="background:'+m.color+'"></i>'+m.name);
       if (on) { b.style.borderColor = m.color; b.style.background = m.bg; }
-      b.onclick = function(){ st.m = mi; st.gIdeas = mi; st.gNotes = mi; st.view = {kind:'board'}; st.tab = 'board'; save(); render(); };
+      b.onclick = function(){ st.view = on ? {kind:'ideas', m:'all'} : {kind:'ideas', m:mi}; st.gIdeas = mi; st.tab = 'board'; save(); render(); };
       mm.appendChild(b);
     });
 
-    // board: whole module board | ideas/notes of one plugin | all ideas/notes (m === 'all')
-    var v = st.view || {kind:'board'};
-    if (v.kind !== 'board' && v.m !== 'all' && active.indexOf(v.m) < 0) v = st.view = {kind:'board'};
-    var entries = [];  // {c, mi, kx, ky}
-    if (v.kind === 'board') {
-      bucket(st.board, st.p, st.m).forEach(function(c){ entries.push({c:c, mi:st.m, kx:'x', ky:'y'}); });
-      $('btitle').textContent = 'Дошка · ' + M[st.m].name;
-    } else {
-      var store = v.kind === 'ideas' ? st.ideas : st.notes;
-      var mods = v.m === 'all' ? active.concat(['g']) : [v.m];
-      var kx = v.m === 'all' ? 'ax' : 'x', ky = v.m === 'all' ? 'ay' : 'y';
-      mods.forEach(function(mi){ bucket(store, st.p, mi).forEach(function(c){ entries.push({c:c, mi:mi, kx:kx, ky:ky}); }); });
-      var placed = entries.filter(function(e){ return e.c[e.kx] != null; });
-      var baseY = placed.length ? placed.reduce(function(m, e){ return Math.max(m, e.c[e.ky]); }, 0) + 200 : 40, k = 0;
-      entries.forEach(function(e){ if (e.c[e.kx] == null) { e.c[e.kx] = 40 + (k % 3) * 300; e.c[e.ky] = baseY + Math.floor(k / 3) * 200; k++; } });
-      $('btitle').textContent = v.m === 'all'
-        ? (v.kind === 'ideas' ? 'Усі ідеї' : 'Усі нотатки')
-        : (v.kind === 'ideas' ? 'Ідеї · ' : 'Нотатки · ') + M[v.m].name;
-    }
-    $('viewreset').hidden = v.kind === 'board';
+    // board entries
+    var store = v.kind === 'notes' ? st.notes : st.ideas;
+    var mods = v.m === 'all' ? active.concat(['g']) : [v.m];
+    var kx = v.m === 'all' ? 'ax' : 'x', ky = v.m === 'all' ? 'ay' : 'y';
+    var entries = [];
+    mods.forEach(function(mi){ bucket(store, st.p, mi).forEach(function(c){ entries.push({c:c, mi:mi}); }); });
+    var placed = entries.filter(function(e){ return e.c[kx] != null; });
+    var baseY = placed.length ? placed.reduce(function(m, e){ return Math.max(m, e.c[ky]); }, 0) + 200 : 40, k = 0;
+    entries.forEach(function(e){ if (e.c[kx] == null) { e.c[kx] = 40 + (k % 3) * 300; e.c[ky] = baseY + Math.floor(k / 3) * 200; k++; } });
+
+    $('btitle').textContent = v.kind === 'notes'
+      ? (v.m === 'all' ? 'Усі нотатки' : 'Нотатки · ' + M[v.m].name)
+      : (v.m === 'all' ? 'Дошка · усі ідеї' : 'Дошка · ' + M[v.m].name);
+    $('viewreset').hidden = v.kind === 'ideas' && v.m === 'all';
+
     var plane = $('plane'); plane.innerHTML = '';
     if (!entries.length) plane.appendChild(el('p', {'class':'empty','style':'position:absolute;left:40px;top:40px;margin:0'},
-      v.kind === 'ideas' ? 'Тут ще немає ідей. Натисніть «+» у кутку дошки.' : v.kind === 'notes' ? 'Тут ще немає нотаток. Натисніть «+» у кутку дошки.' : 'Дошка порожня. Натисніть «+» у кутку.'));
+      v.kind === 'notes' ? 'Тут ще немає нотаток. Натисніть «+» у кутку дошки.' : 'Тут ще немає ідей. Натисніть «+» у кутку дошки.'));
     function plug(mi){ return mi === 'g' ? '<span class="meta mono">Загальна</span>' : '<span class="meta mono" style="display:flex;align-items:center;gap:6px"><i style="width:8px;height:8px;border-radius:2px;display:block;background:'+M[mi].color+'"></i>'+esc(M[mi].name)+'</span>'; }
     entries.forEach(function(e){
       var c = e.c, html;
-      if (v.kind === 'ideas') html = '<span class="badge '+(c.s==='у тесті'?'b-test':'b-idea')+'">'+(c.s==='у тесті'?'Ідея · у тесті':'Ідея · нова')+'</span><h2>'+esc(c.t)+'</h2>'+(c.b?'<p>'+esc(c.b)+'</p>':'')+plug(e.mi);
-      else if (v.kind === 'notes') html = '<span class="badge b-note">Нотатка</span><h2>'+esc(c.t)+'</h2>'+(c.b?'<p>'+esc(c.b)+'</p>':'')+(v.m === 'all' ? plug(e.mi) : '')+'<span class="meta mono">'+esc(c.m)+'</span>';
-      else html = '<span class="badge '+BADGE[c.s]+'">'+esc(c.s)+'</span><h2>'+esc(c.t)+'</h2>'+(c.b?'<p>'+esc(c.b)+'</p>':'')+'<span class="meta mono">'+esc(c.m)+'</span>';
-      var a = el('article', {'class':'card','style':'left:'+c[e.kx]+'px;top:'+c[e.ky]+'px'}, html);
-      drag(a, c, e.kx, e.ky);
+      if (v.kind === 'notes') html = '<span class="badge b-note">Нотатка</span><h2>'+esc(c.t)+'</h2>'+plug(e.mi)+'<span class="meta mono">'+esc(c.m)+'</span>';
+      else { var S = STATUS[c.s] || STATUS['нова']; html = '<span class="badge '+S.cls+'">'+S.label+'</span><h2>'+esc(c.t)+'</h2>'+(c.b?'<p>'+esc(c.b)+'</p>':'')+plug(e.mi); }
+      var a = el('article', {'class':'card','style':'left:'+c[kx]+'px;top:'+c[ky]+'px'}, html);
+      drag(a, c, kx, ky);
       plane.appendChild(a);
     });
-    var tip = v.kind === 'board' ? 'Загальна ідея'
-      : v.m === 'all' ? (v.kind === 'ideas' ? 'Загальна ідея' : 'Загальна нотатка')
-      : (v.kind === 'ideas' ? 'Ідея · ' : 'Нотатка · ') + M[v.m].name;
-    $('addtip').textContent = tip; $('addcard').setAttribute('aria-label', 'Додати: ' + tip); $('addcard').title = 'Додати: ' + tip;
-    $('hIdeas').classList.toggle('on', v.kind === 'ideas' && v.m === 'all');
-    $('hNotes').classList.toggle('on', v.kind === 'notes' && v.m === 'all');
 
-    // sidebar: groups by module
+    var tip = v.m === 'all' ? (v.kind === 'notes' ? 'Загальна нотатка' : 'Загальна ідея')
+      : (v.kind === 'notes' ? 'Нотатка · ' : 'Ідея · ') + M[v.m].name;
+    $('addtip').textContent = tip; $('addcard').setAttribute('aria-label', 'Додати: ' + tip); $('addcard').title = 'Додати: ' + tip;
+
+    // sidebar
     $('cIdeas').textContent = total(st.ideas, st.p);
     $('cNotes').textContent = total(st.notes, st.p);
     var oi = st.openIdeas !== false, on = st.openNotes !== false;
     $('hIdeas').setAttribute('aria-expanded', String(oi));
     $('hNotes').setAttribute('aria-expanded', String(on));
+    $('hIdeas').classList.toggle('on', v.kind === 'ideas' && v.m === 'all');
+    $('hNotes').classList.toggle('on', v.kind === 'notes' && v.m === 'all');
     $('sIdeas').hidden = !oi; $('sNotes').hidden = !on;
-    sideGroup('sIdeas', 'idea');
-    sideGroup('sNotes', 'note');
+    sideGroup('sIdeas', 'ideas');
+    sideGroup('sNotes', 'notes');
 
-    // mobile: chips + filtered list
-    mobileGroup('mIdeasMods', 'mIdeas', 'idea');
-    mobileGroup('mNotesMods', 'mNotes', 'note');
-
+    // mobile lists
+    mobileGroup('mIdeasMods', 'mIdeas', 'ideas');
+    mobileGroup('mNotesMods', 'mNotes', 'notes');
     renderSearch('q','mres'); renderSearch('q2','mres2');
 
-    // tabs
     $('body').className = 'body tab-' + st.tab;
     var T = [
       ['board','Дошка','M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z'],
@@ -460,27 +446,19 @@ a{color:var(--accent)}
       b.onclick = function(){ st.tab = t[0]; save(); render(); };
       tb.appendChild(b);
     });
-    $('amod').textContent = M[st.m].name;
-  }
-
-  function itemHTML(kind, it){
-    return kind === 'idea'
-      ? '<span>'+esc(it.t)+'</span><small class="'+(it.s==='у тесті'?'test':'')+'">'+it.s+'</small>'
-      : '<span>'+esc(it.t)+'<span class="sub">'+esc(it.m)+'</span></span>';
+    $('amod').textContent = v.m === 'all' ? 'усі плагіни' : M[v.m].name;
   }
 
   function sideGroup(boxId, kind){
-    var store = kind === 'idea' ? st.ideas : st.notes;
-    var vk = kind === 'idea' ? 'ideas' : 'notes';
-    var v = st.view || {kind:'board'};
+    var store = kind === 'ideas' ? st.ideas : st.notes, v = V();
     var box = $(boxId); box.innerHTML = '';
     var active = st.mods[st.p];
-    var groups = el('div', {'class':'groups','role':'group','aria-label': kind==='idea' ? 'Ідеї за плагінами' : 'Нотатки за плагінами'});
+    var groups = el('div', {'class':'groups','role':'group','aria-label': kind==='ideas' ? 'Ідеї за плагінами' : 'Нотатки за плагінами'});
     active.forEach(function(mi){
-      var on = v.kind === vk && v.m === mi;
+      var on = v.kind === kind && v.m === mi;
       var b = el('button', {'class':'grow','aria-pressed': String(on)},
         '<i style="background:'+M[mi].color+'"></i>' + M[mi].name + '<span class="n">'+bucket(store, st.p, mi).length+'</span>');
-      b.onclick = function(){ st.view = {kind: vk, m: mi}; st.m = mi; st.tab = 'board'; save(); render(); };
+      b.onclick = function(){ st.view = {kind: kind, m: mi}; st.tab = 'board'; save(); render(); };
       groups.appendChild(b);
     });
     box.appendChild(groups);
@@ -488,9 +466,9 @@ a{color:var(--accent)}
   }
 
   function mobileGroup(chipsId, listId, kind){
-    var store = kind === 'idea' ? st.ideas : st.notes;
-    var key = kind === 'idea' ? 'gIdeas' : 'gNotes';
-    if (st.mods[st.p].indexOf(st[key]) < 0) st[key] = st.m;
+    var store = kind === 'ideas' ? st.ideas : st.notes;
+    var key = kind === 'ideas' ? 'gIdeas' : 'gNotes';
+    if (st.mods[st.p].indexOf(st[key]) < 0) st[key] = st.mods[st.p][0];
     var chips = $(chipsId); chips.innerHTML = '';
     st.mods[st.p].forEach(function(mi){
       var on = st[key] === mi;
@@ -501,12 +479,12 @@ a{color:var(--accent)}
     });
     var list = $(listId); list.innerHTML = '';
     var items = bucket(store, st.p, st[key]);
-    if (!items.length) list.appendChild(el('div', {'class':'empty'}, 'У модулі «'+M[st[key]].name+'» поки порожньо'));
-    items.forEach(function(it, idx){
-      var b = el(kind==='idea' ? 'button' : 'a', kind==='idea' ? {'class':'mrow'} : {'class':'mrow','href':'#'},
-        kind==='idea' ? '<span>'+esc(it.t)+'</span><small class="'+(it.s==='у тесті'?'test':'')+'">'+it.s+'</small>' : '<span>'+esc(it.t)+'</span><small>'+esc(it.m)+'</small>');
-      if (kind === 'idea') b.onclick = function(){ ideaToBoard(st[key], idx); };
-      else b.onclick = function(e){ e.preventDefault(); };
+    if (!items.length) list.appendChild(el('div', {'class':'empty'}, 'У плагіні «'+M[st[key]].name+'» поки порожньо'));
+    items.forEach(function(it){
+      var b = el('button', {'class':'mrow'}, kind==='ideas'
+        ? '<span>'+esc(it.t)+'</span><small class="'+(it.s==='у тесті'?'test':'')+'">'+it.s+'</small>'
+        : '<span>'+esc(it.t)+'</span><small>'+esc(it.m)+'</small>');
+      b.onclick = function(){ st.view = {kind: kind, m: st[key]}; st.tab = 'board'; save(); render(); };
       list.appendChild(b);
     });
   }
@@ -525,37 +503,25 @@ a{color:var(--accent)}
       var b = el('button', added||soon ? {'disabled':''} : {}, added ? 'Додано' : soon ? 'Скоро' : 'Додати');
       if (rid==='mres2') b.setAttribute('style','height:36px;padding:0 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);font-size:13px;font-weight:600;color:'+(added||soon?'var(--faint)':'var(--accent)'));
       b.onclick = function(){
-        if (idx >= 0) { st.mods[st.p].push(idx); st.m = idx; st.gIdeas = idx; st.gNotes = idx; st.tab = 'board'; save(); render(); }
+        if (idx >= 0) { st.mods[st.p].push(idx); st.view = {kind:'ideas', m:idx}; st.tab = 'board'; save(); render(); }
         else toast('Модуль «'+n+'» — демо: ще не існує');
       };
       row.appendChild(b); r.appendChild(row);
     });
   }
 
-  function ideaToBoard(mi, idx){
-    var i = bucket(st.ideas, st.p, mi)[idx];
-    var list = bucket(st.board, st.p, mi);
-    if (!list.some(function(c){ return c.t === i.t; }))
-      list.push({s:'Ідея', t:i.t, b:'Перенесено з бічної панелі.\nДалі: агент запропонує тест', m:'ідея', x:60 + (list.length%3)*300, y:420});
-    st.m = mi; st.tab = 'board'; save(); render();
-    toast('«'+i.t+'» на дошці «'+M[mi].name+'»');
-  }
-
   function addItem(kind, mi){
-    if (mi == null) mi = kind==='idea' ? st.gIdeas : st.gNotes;
-    if (mi === 'all') mi = 'g';
-    if (mi !== 'g' && st.mods[st.p].indexOf(mi) < 0) mi = st.m;
-    var t = prompt((kind==='idea' ? 'Нова ідея' : 'Нова нотатка') + ' · ' + (mi === 'g' ? 'загальна' : M[mi].name) + ':');
+    if (mi == null || mi === 'all') mi = 'g';
+    var t = prompt((kind==='ideas' ? 'Нова ідея' : 'Нова нотатка') + ' · ' + modName(mi) + ':');
     if (!t) return;
-    if (kind==='idea') { bucket(st.ideas, st.p, mi).push({t:t, s:'нова'}); st.openIdeas = true; if (mi !== 'g') st.gIdeas = mi; }
-    else { bucket(st.notes, st.p, mi).push({t:t, m:'щойно'}); st.openNotes = true; if (mi !== 'g') st.gNotes = mi; }
+    if (kind === 'ideas') { bucket(st.ideas, st.p, mi).push({t:t, s:'нова', b:''}); st.openIdeas = true; }
+    else { bucket(st.notes, st.p, mi).push({t:t, m:'щойно'}); st.openNotes = true; }
     save(); render();
     setTimeout(function(){ var c = document.querySelector('.canvas'); if (c) c.scrollTo({top: c.scrollHeight, behavior: 'smooth'}); }, 50);
     toast(mi === 'g' ? 'Додано як загальну' : 'Додано в «' + M[mi].name + '»');
   }
 
   function drag(a, c, kx, ky){
-    kx = kx || 'x'; ky = ky || 'y';
     var sx, sy, ox, oy, on = false;
     a.addEventListener('pointerdown', function(e){
       if (window.matchMedia('(max-width: 860px)').matches) return;
@@ -572,9 +538,8 @@ a{color:var(--accent)}
   }
 
   function headClick(kind, openKey){
-    var v = st.view || {};
-    var showing = v.kind === kind && v.m === 'all';
-    if (showing && st[openKey] !== false) st[openKey] = false;      // 2nd click: collapse list
+    var v = V(), showing = v.kind === kind && v.m === 'all';
+    if (showing && st[openKey] !== false) st[openKey] = false;
     else { st[openKey] = true; st.view = {kind: kind, m: 'all'}; st.tab = 'board'; }
     save(); render();
   }
@@ -583,20 +548,12 @@ a{color:var(--accent)}
   $('q').oninput = function(){ renderSearch('q','mres'); };
   $('q2').oninput = function(){ renderSearch('q2','mres2'); };
   $('addmod').onclick = function(){ st.tab = 'modules'; save(); render(); $('q').focus(); };
-  $('addcard').onclick = function(){
-    var v = st.view || {kind:'board'};
-    if (v.kind === 'ideas') return addItem('idea', v.m);
-    if (v.kind === 'notes') return addItem('note', v.m);
-    var t = prompt('Загальна ідея:'); if (!t) return;
-    var l = bucket(st.board, st.p, st.m), n = l.length;
-    var maxY = l.reduce(function(a, c){ return Math.max(a, c.y); }, -200);
-    l.push({s:'Ідея', t:t, b:'', m:'загальна ідея', x:40, y:maxY + 220});
-    setTimeout(function(){ var c = document.querySelector('.canvas'); if (c) c.scrollTo({top: maxY, behavior:'smooth'}); }, 50);
-    save(); render(); toast('Додано на загальну дошку');
-  };
-  $('viewreset').onclick = function(){ st.view = {kind:'board'}; save(); render(); };
-  document.querySelectorAll('[data-add]').forEach(function(b){ b.onclick = function(){ addItem(b.getAttribute('data-add')); }; });
-  function openAgent(){ $('atext').textContent = AGENT[st.m] || AGENT[0]; $('agent').classList.add('open'); }
+  $('addcard').onclick = function(){ var v = V(); addItem(v.kind, v.m); };
+  $('viewreset').onclick = function(){ st.view = {kind:'ideas', m:'all'}; save(); render(); };
+  document.querySelectorAll('[data-add]').forEach(function(b){
+    b.onclick = function(){ var k = b.getAttribute('data-add') === 'idea' ? 'ideas' : 'notes'; addItem(k, st[k === 'ideas' ? 'gIdeas' : 'gNotes']); };
+  });
+  function openAgent(){ var v = V(); $('atext').textContent = AGENT[v.m] || AGENT.all; $('agent').classList.add('open'); }
   $('askd').onclick = openAgent; $('askm').onclick = openAgent;
   $('aclose').onclick = function(){ $('agent').classList.remove('open'); };
   $('theme').onclick = function(){
