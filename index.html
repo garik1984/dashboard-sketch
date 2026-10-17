@@ -111,6 +111,28 @@ a{color:var(--accent)}
 .agent p{margin:0;font-size:14px;line-height:1.5;color:#D3D5D0}
 .agent button.x{border:0;background:transparent;color:#C5C9CE;font-size:20px;width:36px;height:36px}
 
+/* groups by module */
+[hidden]{display:none!important}
+.side > *{flex-shrink:0}
+.mview > .madd{flex:none}
+.groups{display:flex;flex-direction:column;gap:2px;max-height:146px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.grow{flex:none;display:flex;align-items:center;gap:10px;width:100%;min-height:46px;padding:0 10px;border:0;border-radius:8px;background:transparent;color:var(--ink2);font-size:14px;text-align:left}
+.grow:hover{background:var(--line2)}
+.grow i{width:8px;height:8px;border-radius:2px;display:block;flex:none}
+.grow[aria-pressed="true"]{background:var(--panel);box-shadow:inset 0 0 0 1px var(--line);color:var(--ink);font-weight:600}
+.grow .n{margin-left:auto;font-size:12px;color:var(--faint);font-weight:500}
+.grow .chev{color:var(--faint);transition:transform .15s}
+.grow[aria-pressed="true"] .chev{transform:rotate(90deg)}
+.scrollhint{font-size:11px;color:var(--faint);padding:2px 10px 0}
+.gitems{display:flex;flex-direction:column;gap:2px;margin:4px 0 2px 14px;padding-left:8px;border-left:2px solid var(--line)}
+.empty{font-size:13px;color:var(--faint);padding:8px 10px}
+.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -16px 4px;padding:0 16px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;display:flex;align-items:center;gap:8px;height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-size:14px;white-space:nowrap}
+.chip i{width:8px;height:8px;border-radius:2px;display:block}
+.chip[aria-pressed="true"]{color:var(--ink);font-weight:600}
+.chip .n{font-size:12px;color:var(--faint);font-weight:500}
+
 /* mobile nav (hidden on desktop) */
 .tabbar{display:none}
 .mview{display:none}
@@ -213,8 +235,8 @@ a{color:var(--accent)}
       <div class="canvas"><div class="plane" id="plane"></div></div>
     </main>
 
-    <section class="mview ideas" aria-label="Ідеї"><h1>Ідеї</h1><div id="mIdeas" style="display:flex;flex-direction:column;gap:8px"></div><button class="madd" data-add="idea">+ Нова ідея</button></section>
-    <section class="mview notes" aria-label="Нотатки"><h1>Нотатки</h1><div id="mNotes" style="display:flex;flex-direction:column;gap:8px"></div>
+    <section class="mview ideas" aria-label="Ідеї"><h1>Ідеї</h1><div class="chips" id="mIdeasMods" role="group" aria-label="Модуль"></div><div id="mIdeas" style="display:flex;flex-direction:column;gap:8px"></div><button class="madd" data-add="idea">+ Нова ідея</button></section>
+    <section class="mview notes" aria-label="Нотатки"><h1>Нотатки</h1><div class="chips" id="mNotesMods" role="group" aria-label="Модуль"></div><div id="mNotes" style="display:flex;flex-direction:column;gap:8px"></div>
       <div style="display:flex;gap:8px"><button class="madd" data-add="note">+ Нотатка</button><button class="mic" aria-label="Записати голосову нотатку"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button></div>
     </section>
     <section class="mview mods" aria-label="Пошук модулів"><h1>Пошук модулів</h1>
@@ -236,7 +258,7 @@ a{color:var(--accent)}
 
 <script>
 (function(){
-  var KEY = 'sketch-v2-state';
+  var KEY = 'sketch-v2-state-b';
   var P = [
     {name:'Застосунок для сну', letter:'С', color:'#0B6B52'},
     {name:"Кав'ярня Львів", letter:'К', color:'#2F5BD3'},
@@ -245,123 +267,144 @@ a{color:var(--accent)}
   var M = [
     {name:'Маркетинг', color:'#0B6B52', bg:'var(--accent-bg)'},
     {name:'Стратегія', color:'#2F5BD3', bg:'var(--blue-bg)'},
-    {name:'Аналітика', color:'#C2410C', bg:'var(--orange-bg)'}
+    {name:'Аналітика', color:'#C2410C', bg:'var(--orange-bg)'},
+    {name:'Продукт', color:'#7C3AED', bg:'rgba(124,58,237,.12)'},
+    {name:'Фінанси', color:'#A16207', bg:'rgba(161,98,7,.12)'}
   ];
-  var EXTRA = ['Продажі B2B','Фінанси','Продукт','Найм','Психологія · скоро'];
+  var EXTRA = ['Продажі B2B','Найм','Психологія · скоро'];
   var BADGE = {'Ідея':'b-idea','Тест триває':'b-test','Немає вердикту':'b-none','Спрацювало':'b-ok'};
+
+  // board[project][module] = cards
   var SEED_BOARD = [
-    [
-      [
+    {
+      0:[
         {s:'Ідея',t:'Ідея 1 · Пейвол після 3-го дня',b:'Гіпотеза: довший пробний період\nпідвищить конверсію в оплату',m:'з нотатки 12.10',x:40,y:40},
         {s:'Тест триває',t:'Новий онбординг',b:'Поріг: конверсія ≥ контролю\nПеревірка: [ДАТА]',m:'тест A/B',x:340,y:90},
         {s:'Немає вердикту',t:'TikTok для Польщі',b:'Даних замало.\nДалі: ще тиждень трафіку',m:'агент',x:640,y:40},
         {s:'Спрацювало',t:'Річний план зі знижкою',b:'Записано в журнал рішень',m:'рішення',x:180,y:330}
       ],
-      [
+      1:[
         {s:'Ідея',t:'Вихід у Німеччину',b:'Що треба знати до рішення?\nЦіни, конкуренти, мова',m:'нова',x:60,y:60},
         {s:'Немає вердикту',t:'Партнерство з клінікою сну',b:'Невідомо: умови партнера',m:'агент',x:380,y:160}
       ],
-      [
+      2:[
         {s:'Тест триває',t:'Утримання 7-го дня',b:'Ціль: [XX%]\nЗараз: [XX%]',m:'дані',x:60,y:60},
         {s:'Ідея',t:'Когорти за каналом',b:'Порівняти TikTok і Meta',m:'нова',x:360,y:60}
-      ]
-    ],
-    [
-      [{s:'Ідея',t:'Зимове меню в Instagram',b:'Серія з 5 постів',m:'нова',x:60,y:60},{s:'Тест триває',t:'Знижка до 10:00',b:'Поріг: +15% чеків зранку\nПеревірка: [ДАТА]',m:'тест',x:360,y:120}],
-      [{s:'Немає вердикту',t:'Друга точка',b:'Даних про трафік району замало',m:'агент',x:80,y:80}],
-      [{s:'Ідея',t:'Середній чек за днями',b:'Підключити касу',m:'нова',x:60,y:60}]
-    ],
-    [
-      [{s:'Ідея',t:'Особистий бренд',b:'1 пост на тиждень',m:'нова',x:60,y:60}],
-      [{s:'Ідея',t:'План на квартал',b:'3 цілі, засоби, kill-критерії',m:'нова',x:60,y:60}],
-      []
-    ]
+      ],
+      3:[{s:'Ідея',t:'Режим «тихої години»',b:'Нагадування за 30 хв до сну',m:'нова',x:60,y:60}],
+      4:[{s:'Немає вердикту',t:'Ціна у злотих',b:'Бракує даних про купівельну спроможність',m:'агент',x:60,y:60}]
+    },
+    {
+      0:[{s:'Ідея',t:'Зимове меню в Instagram',b:'Серія з 5 постів',m:'нова',x:60,y:60},{s:'Тест триває',t:'Знижка до 10:00',b:'Поріг: +15% чеків зранку\nПеревірка: [ДАТА]',m:'тест',x:360,y:120}],
+      1:[{s:'Немає вердикту',t:'Друга точка',b:'Даних про трафік району замало',m:'агент',x:80,y:80}]
+    },
+    {
+      1:[{s:'Ідея',t:'План на квартал',b:'3 цілі, засоби, kill-критерії',m:'нова',x:60,y:60}]
+    }
   ];
+  // ideas[project][module] = [{t,s}]
   var SEED_IDEAS = [
-    [{t:'Пейвол після 3-го дня',s:'нова'},{t:'Новий онбординг',s:'у тесті'},{t:'Запуск у Німеччині',s:'нова'}],
-    [{t:'Друга точка',s:'нова'},{t:'Зимове меню',s:'у тесті'}],
-    [{t:'Книга про ціни',s:'нова'}]
+    {
+      0:[{t:'Пейвол після 3-го дня',s:'нова'},{t:'Новий онбординг',s:'у тесті'},{t:'Хуки для Reels',s:'нова'}],
+      1:[{t:'Запуск у Німеччині',s:'нова'}],
+      2:[{t:'Когорти за каналом',s:'нова'},{t:'Утримання 7-го дня',s:'у тесті'}],
+      3:[{t:'Режим «тихої години»',s:'нова'}],
+      4:[{t:'Ціна у злотих',s:'нова'}]
+    },
+    { 0:[{t:'Зимове меню',s:'у тесті'}], 1:[{t:'Друга точка',s:'нова'}] },
+    { 1:[{t:'Книга про ціни',s:'нова'}] }
   ];
   var SEED_NOTES = [
-    [{t:'Голосове: відгуки з Польщі',m:'сьогодні · 2 хв'},{t:'Конкурент знизив ціну',m:'вчора'},{t:'Дзвінок з дизайнером',m:'12.10'}],
-    [{t:'Постачальник кави',m:'15.10'}],
-    [{t:'Думки про продукт',m:'10.10'}]
+    {
+      0:[{t:'Голосове: відгуки з Польщі',m:'сьогодні · 2 хв'},{t:'Конкурент знизив ціну',m:'вчора'}],
+      1:[{t:'Дзвінок з інвестором',m:'14.10'}],
+      2:[{t:'Падіння D1 після релізу',m:'13.10'}],
+      3:[{t:'Дзвінок з дизайнером',m:'12.10'}],
+      4:[]
+    },
+    { 0:[{t:'Постачальник кави',m:'15.10'}], 1:[] },
+    { 1:[{t:'Думки про продукт',m:'10.10'}] }
   ];
   var AGENT = [
     'Ідея «Пейвол після 3-го дня» ще без тесту. Пропоную: A/B на 50% нових користувачів, поріг «не спрацювало» — конверсія нижча за контроль, перевірка через 14 днів. Додати картку тесту?',
     'Для рішення про Німеччину бракує трьох речей: ціни конкурентів, вартість локалізації, CPM у DE. Без них вердикту немає.',
-    'Утримання 7-го дня: даних за 2 тижні замало для висновку про тренд. Повернуся, коли буде ≥ 4 когорти.'
+    'Утримання 7-го дня: даних за 2 тижні замало для висновку про тренд. Повернуся, коли буде ≥ 4 когорти.',
+    'Режим «тихої години» — перевірте спершу на 5 інтерв’ю, чи це болить користувачам.',
+    'Ціна у злотих: вердикту немає, потрібні дані про конверсію за ціновими групами.'
   ];
 
-  var st = load() || {p:0, m:0, side:'ideas', tab:'board', board:clone(SEED_BOARD), ideas:clone(SEED_IDEAS), notes:clone(SEED_NOTES), mods:[[0,1,2],[0,1],[1]]};
   function clone(o){ return JSON.parse(JSON.stringify(o)); }
   function load(){ try { var s = localStorage.getItem(KEY); return s ? JSON.parse(s) : null; } catch(e){ return null; } }
   function save(){ try { localStorage.setItem(KEY, JSON.stringify(st)); } catch(e){} }
+  var st = load() || {p:0, m:0, side:'ideas', gIdeas:0, gNotes:0, tab:'board',
+    board:clone(SEED_BOARD), ideas:clone(SEED_IDEAS), notes:clone(SEED_NOTES),
+    mods:[[0,1,2,3,4],[0,1],[1]]};
+
   function el(tag, attrs, html){ var e = document.createElement(tag); for (var k in (attrs||{})) e.setAttribute(k, attrs[k]); if (html != null) e.innerHTML = html; return e; }
   function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
   var $ = function(id){ return document.getElementById(id); };
+  function bucket(store, p, m){ store[p] = store[p] || {}; return store[p][m] = store[p][m] || []; }
+  function total(store, p){ return st.mods[p].reduce(function(a, m){ return a + bucket(store, p, m).length; }, 0); }
+  var CHEV = '<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
 
   function render(){
+    var active = st.mods[st.p];
+    if (active.indexOf(st.m) < 0) st.m = active[0];
+    if (active.indexOf(st.gIdeas) < 0) st.gIdeas = st.m;
+    if (active.indexOf(st.gNotes) < 0) st.gNotes = st.m;
+
     // projects
     var pr = $('projects'); pr.innerHTML = '';
     P.forEach(function(p, i){
       var b = el('button', {'class':'ptab','aria-current': String(i===st.p)}, '<span class="pdot" style="background:'+p.color+'">'+p.letter+'</span>'+esc(p.name));
-      b.onclick = function(){ st.p = i; st.m = st.mods[i][0] || 0; save(); render(); };
+      b.onclick = function(){ st.p = i; st.m = st.mods[i][0]; st.gIdeas = st.m; st.gNotes = st.m; save(); render(); };
       pr.appendChild(b);
     });
     var add = el('button', {'class':'addbtn','aria-label':'Новий проєкт'}, '+');
-    add.onclick = function(){ alertSoft('Створення проєкту — у наступній версії'); };
+    add.onclick = function(){ toast('Створення проєкту — у наступній версії'); };
     pr.appendChild(add);
     $('pname').textContent = P[st.p].name;
 
-    // modules
+    // module tabs
     var mm = $('modules'); mm.innerHTML = '';
-    var active = st.mods[st.p];
-    if (active.indexOf(st.m) < 0) st.m = active[0];
     active.forEach(function(mi){
-      var m = M[mi]; var on = mi === st.m;
+      var m = M[mi], on = mi === st.m;
       var b = el('button', {'class':'mtab','aria-current': String(on)}, '<i style="background:'+m.color+'"></i>'+m.name);
       if (on) { b.style.borderColor = m.color; b.style.background = m.bg; }
-      b.onclick = function(){ st.m = mi; st.tab = 'board'; save(); render(); };
+      b.onclick = function(){ st.m = mi; st.gIdeas = mi; st.gNotes = mi; st.tab = 'board'; save(); render(); };
       mm.appendChild(b);
     });
 
     // board
-    var list = st.board[st.p][st.m] || [];
+    var list = bucket(st.board, st.p, st.m);
     $('btitle').textContent = 'Дошка · ' + M[st.m].name;
     var plane = $('plane'); plane.innerHTML = '';
-    if (!list.length) plane.appendChild(el('p', {'style':'position:absolute;left:40px;top:40px;color:var(--faint);margin:0'}, 'Дошка порожня. Додайте картку або ідею.'));
-    list.forEach(function(c, idx){
+    if (!list.length) plane.appendChild(el('p', {'class':'empty','style':'position:absolute;left:40px;top:40px;margin:0'}, 'Дошка порожня. Додайте картку або перенесіть ідею.'));
+    list.forEach(function(c){
       var a = el('article', {'class':'card','style':'left:'+c.x+'px;top:'+c.y+'px'},
-        '<span class="badge '+BADGE[c.s]+'">'+esc(c.s)+'</span><h2>'+esc(c.t)+'</h2><p>'+esc(c.b)+'</p><span class="meta mono">'+esc(c.m)+'</span>');
+        '<span class="badge '+BADGE[c.s]+'">'+esc(c.s)+'</span><h2>'+esc(c.t)+'</h2>'+(c.b?'<p>'+esc(c.b)+'</p>':'')+'<span class="meta mono">'+esc(c.m)+'</span>');
       drag(a, c);
       plane.appendChild(a);
     });
 
-    // sidebar
-    var ideas = st.ideas[st.p], notes = st.notes[st.p];
-    $('cIdeas').textContent = ideas.length; $('cNotes').textContent = notes.length;
-    $('hIdeas').setAttribute('aria-expanded', String(st.side==='ideas'));
-    $('hNotes').setAttribute('aria-expanded', String(st.side==='notes'));
-    $('sIdeas').hidden = st.side !== 'ideas'; $('sNotes').hidden = st.side !== 'notes';
-    var si = $('sIdeas'); si.innerHTML = '';
-    ideas.forEach(function(i, idx){ var b = el('button', {'class':'sitem'}, '<span>'+esc(i.t)+'</span><small class="'+(i.s==='у тесті'?'test':'')+'">'+i.s+'</small>'); b.onclick = function(){ ideaToBoard(idx); }; b.title = 'Перенести на дошку'; si.appendChild(b); });
-    var ai = el('button', {'class':'sadd'}, '+ Нова ідея'); ai.onclick = function(){ addItem('idea'); }; si.appendChild(ai);
-    var sn = $('sNotes'); sn.innerHTML = '';
-    notes.forEach(function(n){ sn.appendChild(el('a', {'class':'sitem','href':'#'}, '<span>'+esc(n.t)+'<span class="sub">'+esc(n.m)+'</span></span>')); });
-    var an = el('button', {'class':'sadd'}, '+ Нова нотатка'); an.onclick = function(){ addItem('note'); }; sn.appendChild(an);
+    // sidebar: groups by module
+    $('cIdeas').textContent = total(st.ideas, st.p);
+    $('cNotes').textContent = total(st.notes, st.p);
+    var oi = st.openIdeas !== false, on = st.openNotes !== false;
+    $('hIdeas').setAttribute('aria-expanded', String(oi));
+    $('hNotes').setAttribute('aria-expanded', String(on));
+    $('sIdeas').hidden = !oi; $('sNotes').hidden = !on;
+    sideGroup('sIdeas', 'idea');
+    sideGroup('sNotes', 'note');
 
-    // mobile lists
-    var mi = $('mIdeas'); mi.innerHTML = '';
-    ideas.forEach(function(i, idx){ var b = el('button', {'class':'mrow'}, '<span>'+esc(i.t)+'</span><small class="'+(i.s==='у тесті'?'test':'')+'">'+i.s+'</small>'); b.onclick = function(){ ideaToBoard(idx); }; mi.appendChild(b); });
-    var mn = $('mNotes'); mn.innerHTML = '';
-    notes.forEach(function(n){ mn.appendChild(el('a', {'class':'mrow','href':'#'}, '<span>'+esc(n.t)+'</span><small>'+esc(n.m)+'</small>')); });
+    // mobile: chips + filtered list
+    mobileGroup('mIdeasMods', 'mIdeas', 'idea');
+    mobileGroup('mNotesMods', 'mNotes', 'note');
 
-    // module search
     renderSearch('q','mres'); renderSearch('q2','mres2');
 
     // tabs
-    var body = $('body'); body.className = 'body tab-' + st.tab;
+    $('body').className = 'body tab-' + st.tab;
     var T = [
       ['board','Дошка','M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z'],
       ['ideas','Ідеї','M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z'],
@@ -377,39 +420,107 @@ a{color:var(--accent)}
     $('amod').textContent = M[st.m].name;
   }
 
+  function itemHTML(kind, it){
+    return kind === 'idea'
+      ? '<span>'+esc(it.t)+'</span><small class="'+(it.s==='у тесті'?'test':'')+'">'+it.s+'</small>'
+      : '<span>'+esc(it.t)+'<span class="sub">'+esc(it.m)+'</span></span>';
+  }
+
+  function sideGroup(boxId, kind){
+    var store = kind === 'idea' ? st.ideas : st.notes;
+    var key = kind === 'idea' ? 'gIdeas' : 'gNotes';
+    var box = $(boxId); box.innerHTML = '';
+    var active = st.mods[st.p];
+    var groups = el('div', {'class':'groups','role':'group','aria-label': kind==='idea' ? 'Ідеї за модулями' : 'Нотатки за модулями'});
+    active.forEach(function(mi){
+      var on = st[key] === mi;
+      var b = el('button', {'class':'grow','aria-pressed': String(on)},
+        CHEV + '<i style="background:'+M[mi].color+'"></i>' + (kind==='idea'?'Ідеї · ':'Нотатки · ') + M[mi].name + '<span class="n">'+bucket(store, st.p, mi).length+'</span>');
+      b.onclick = function(){ st[key] = on ? -1 : mi; save(); render(); };
+      groups.appendChild(b);
+    });
+    box.appendChild(groups);
+    if (active.length > 3) box.appendChild(el('div', {'class':'scrollhint'}, 'ще ' + (active.length - 3) + ' — гортайте список ↕'));
+
+    if (active.indexOf(st[key]) >= 0) {
+      var mi = st[key];
+      var wrap = el('div', {'class':'gitems','style':'border-left-color:'+M[mi].color});
+      var items = bucket(store, st.p, mi);
+      if (!items.length) wrap.appendChild(el('div', {'class':'empty'}, 'Поки порожньо'));
+      items.forEach(function(it, idx){
+        var b = el(kind==='idea' ? 'button' : 'a', kind==='idea' ? {'class':'sitem','title':'Перенести на дошку'} : {'class':'sitem','href':'#'}, itemHTML(kind, it));
+        if (kind === 'idea') b.onclick = function(){ ideaToBoard(mi, idx); };
+        else b.onclick = function(e){ e.preventDefault(); };
+        wrap.appendChild(b);
+      });
+      var a = el('button', {'class':'sadd'}, (kind==='idea' ? '+ Ідея в «' : '+ Нотатка в «') + M[mi].name + '»');
+      a.onclick = function(){ addItem(kind, mi); };
+      wrap.appendChild(a);
+      box.appendChild(wrap);
+    }
+  }
+
+  function mobileGroup(chipsId, listId, kind){
+    var store = kind === 'idea' ? st.ideas : st.notes;
+    var key = kind === 'idea' ? 'gIdeas' : 'gNotes';
+    if (st.mods[st.p].indexOf(st[key]) < 0) st[key] = st.m;
+    var chips = $(chipsId); chips.innerHTML = '';
+    st.mods[st.p].forEach(function(mi){
+      var on = st[key] === mi;
+      var c = el('button', {'class':'chip','aria-pressed': String(on)}, '<i style="background:'+M[mi].color+'"></i>'+M[mi].name+' <span class="n">'+bucket(store, st.p, mi).length+'</span>');
+      if (on) { c.style.borderColor = M[mi].color; c.style.background = M[mi].bg; }
+      c.onclick = function(){ st[key] = mi; save(); render(); };
+      chips.appendChild(c);
+    });
+    var list = $(listId); list.innerHTML = '';
+    var items = bucket(store, st.p, st[key]);
+    if (!items.length) list.appendChild(el('div', {'class':'empty'}, 'У модулі «'+M[st[key]].name+'» поки порожньо'));
+    items.forEach(function(it, idx){
+      var b = el(kind==='idea' ? 'button' : 'a', kind==='idea' ? {'class':'mrow'} : {'class':'mrow','href':'#'},
+        kind==='idea' ? '<span>'+esc(it.t)+'</span><small class="'+(it.s==='у тесті'?'test':'')+'">'+it.s+'</small>' : '<span>'+esc(it.t)+'</span><small>'+esc(it.m)+'</small>');
+      if (kind === 'idea') b.onclick = function(){ ideaToBoard(st[key], idx); };
+      else b.onclick = function(e){ e.preventDefault(); };
+      list.appendChild(b);
+    });
+  }
+
   function renderSearch(qid, rid){
     var q = ($(qid).value || '').toLowerCase().trim();
     var have = st.mods[st.p].map(function(i){ return M[i].name; });
     var all = M.map(function(m){ return m.name; }).concat(EXTRA);
     var r = $(rid); r.innerHTML = '';
-    all.filter(function(n){ return !q || n.toLowerCase().indexOf(q) >= 0; }).slice(0, q ? 8 : 3).forEach(function(n){
+    all.filter(function(n){ return !q || n.toLowerCase().indexOf(q) >= 0; })
+       .sort(function(a, b){ return (have.indexOf(a) >= 0) - (have.indexOf(b) >= 0); })
+       .slice(0, q ? 8 : 3).forEach(function(n){
       var idx = -1; M.forEach(function(m, i){ if (m.name === n) idx = i; });
       var added = have.indexOf(n) >= 0, soon = n.indexOf('скоро') >= 0;
       var row = el('div', {'class': rid==='mres2' ? 'mrow' : 'mres'}, '<span>'+esc(n)+'</span>');
       var b = el('button', added||soon ? {'disabled':''} : {}, added ? 'Додано' : soon ? 'Скоро' : 'Додати');
       if (rid==='mres2') b.setAttribute('style','height:36px;padding:0 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);font-size:13px;font-weight:600;color:'+(added||soon?'var(--faint)':'var(--accent)'));
       b.onclick = function(){
-        if (idx >= 0) { st.mods[st.p].push(idx); st.m = idx; st.tab = 'board'; save(); render(); }
-        else alertSoft('Модуль «'+n+'» — демо: ще не існує');
+        if (idx >= 0) { st.mods[st.p].push(idx); st.m = idx; st.gIdeas = idx; st.gNotes = idx; st.tab = 'board'; save(); render(); }
+        else toast('Модуль «'+n+'» — демо: ще не існує');
       };
       row.appendChild(b); r.appendChild(row);
     });
   }
 
-  function ideaToBoard(idx){
-    var i = st.ideas[st.p][idx];
-    var list = st.board[st.p][st.m] = st.board[st.p][st.m] || [];
-    var exists = list.some(function(c){ return c.t === i.t; });
-    if (!exists) list.push({s:'Ідея', t:i.t, b:'Перенесено з бічної панелі.\nДалі: агент запропонує тест', m:'ідея', x:60 + (list.length%3)*300, y:420});
-    st.tab = 'board'; save(); render();
+  function ideaToBoard(mi, idx){
+    var i = bucket(st.ideas, st.p, mi)[idx];
+    var list = bucket(st.board, st.p, mi);
+    if (!list.some(function(c){ return c.t === i.t; }))
+      list.push({s:'Ідея', t:i.t, b:'Перенесено з бічної панелі.\nДалі: агент запропонує тест', m:'ідея', x:60 + (list.length%3)*300, y:420});
+    st.m = mi; st.tab = 'board'; save(); render();
+    toast('«'+i.t+'» на дошці «'+M[mi].name+'»');
   }
 
-  function addItem(kind){
-    var t = prompt(kind==='idea' ? 'Нова ідея:' : 'Нова нотатка:');
+  function addItem(kind, mi){
+    if (mi == null) mi = kind==='idea' ? st.gIdeas : st.gNotes;
+    if (st.mods[st.p].indexOf(mi) < 0) mi = st.m;
+    var t = prompt((kind==='idea' ? 'Нова ідея' : 'Нова нотатка') + ' · ' + M[mi].name + ':');
     if (!t) return;
-    if (kind==='idea') st.ideas[st.p].unshift({t:t, s:'нова'});
-    else st.notes[st.p].unshift({t:t, m:'щойно'});
-    st.side = kind==='idea' ? 'ideas' : 'notes';
+    if (kind==='idea') { bucket(st.ideas, st.p, mi).unshift({t:t, s:'нова'}); st.openIdeas = true; st.gIdeas = mi; }
+    else { bucket(st.notes, st.p, mi).unshift({t:t, m:'щойно'}); st.openNotes = true; st.gNotes = mi; }
     save(); render();
   }
 
@@ -424,17 +535,17 @@ a{color:var(--accent)}
   }
 
   var toastT;
-  function alertSoft(msg){
-    var t = $('toast'); if (!t){ t = el('div', {'id':'toast','role':'status','style':'position:fixed;left:50%;top:16px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;z-index:30'}); document.body.appendChild(t); }
+  function toast(msg){
+    var t = $('toast'); if (!t){ t = el('div', {'id':'toast','role':'status','style':'position:fixed;left:50%;top:16px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;z-index:30;max-width:calc(100vw - 32px)'}); document.body.appendChild(t); }
     t.textContent = msg; t.style.display = 'block'; clearTimeout(toastT); toastT = setTimeout(function(){ t.style.display = 'none'; }, 2200);
   }
 
-  $('hIdeas').onclick = function(){ st.side = 'ideas'; save(); render(); };
-  $('hNotes').onclick = function(){ st.side = 'notes'; save(); render(); };
+  $('hIdeas').onclick = function(){ st.openIdeas = st.openIdeas === false; save(); render(); };
+  $('hNotes').onclick = function(){ st.openNotes = st.openNotes === false; save(); render(); };
   $('q').oninput = function(){ renderSearch('q','mres'); };
   $('q2').oninput = function(){ renderSearch('q2','mres2'); };
   $('addmod').onclick = function(){ st.tab = 'modules'; save(); render(); $('q').focus(); };
-  $('addcard').onclick = function(){ var t = prompt('Назва картки:'); if (!t) return; var l = st.board[st.p][st.m] = st.board[st.p][st.m] || []; l.push({s:'Ідея',t:t,b:'',m:'щойно',x:60,y:60}); save(); render(); };
+  $('addcard').onclick = function(){ var t = prompt('Назва картки:'); if (!t) return; bucket(st.board, st.p, st.m).push({s:'Ідея',t:t,b:'',m:'щойно',x:60,y:60}); save(); render(); };
   document.querySelectorAll('[data-add]').forEach(function(b){ b.onclick = function(){ addItem(b.getAttribute('data-add')); }; });
   function openAgent(){ $('atext').textContent = AGENT[st.m] || AGENT[0]; $('agent').classList.add('open'); }
   $('askd').onclick = openAgent; $('askm').onclick = openAgent;
