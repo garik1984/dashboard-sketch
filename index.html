@@ -132,6 +132,12 @@ a{color:var(--accent)}
 /* ── sheet (bottom sheet on phone, modal on desktop) ── */
 .scrim{position:fixed;inset:0;background:rgba(10,11,12,.45);z-index:50;opacity:0;pointer-events:none;transition:opacity .2s}
 .scrim.open{opacity:1;pointer-events:auto}
+.sheet.wide{width:min(1100px,calc(100vw - 48px));height:min(88vh,900px);max-height:none;display:flex;flex-direction:column}
+.sheet.wide #shBody{flex:1;min-height:0;display:flex;flex-direction:column}
+.sheet.wide #shBody > div{flex:1;min-height:0;display:flex;flex-direction:column}
+.nframe{flex:1;min-height:0;width:100%;border:1px solid var(--line);border-radius:12px;background:#fff}
+.ntools{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}
+.ntools a,.ntools button{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer}
 .sheet{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:min(460px,calc(100vw - 32px));max-height:min(80vh,680px);overflow-y:auto;background:var(--panel);color:var(--ink);border-radius:16px;padding:20px;z-index:51;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;box-shadow:0 30px 80px rgba(0,0,0,.3)}
 .sheet.open{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
 .sheet .grab{display:none}
@@ -261,6 +267,7 @@ a{color:var(--accent)}
   .mplus{width:64px;height:64px;border-radius:50%;border:0;background:var(--ink);color:var(--bg);display:grid;place-items:center;box-shadow:0 10px 24px rgba(0,0,0,.25);margin:0 8px}
   .agent{left:12px;right:12px;width:auto;bottom:calc(84px + env(safe-area-inset-bottom))}
 
+  .sheet.wide{height:92dvh;width:100%}
   .sheet{left:0;right:0;top:auto;bottom:0;width:100%;max-height:88dvh;transform:translateY(100%);border-radius:20px 20px 0 0;padding:8px 16px calc(20px + env(safe-area-inset-bottom))}
   .sheet.open{transform:translateY(0)}
   .sheet .grab{display:block;width:40px;height:5px;border-radius:3px;background:var(--line);margin:4px auto 10px}
@@ -380,21 +387,28 @@ a{color:var(--accent)}
     'готово':   {label:'Готово',       cls:'b-ok',   group:'Готово',       dot:'var(--accent)'}
   };
   var TORDER = ['в роботі', 'треба', 'готово'];
-  var STATUS_BY = {ideas:STATUS, tasks:TSTATUS};
-  var ORDER_BY = {ideas:ORDER, tasks:TORDER};
-  var DEF_STATUS = {ideas:'нова', tasks:'треба'};
+  var ISTATUS = {
+    'чернетка':    {label:'Інструкція · чернетка', cls:'b-idea', group:'Чернетки',      dot:'var(--faint)'},
+    'актуальна':   {label:'Актуальна',             cls:'b-ok',   group:'Актуальні',     dot:'var(--accent)'},
+    'оновити':     {label:'Треба оновити',         cls:'b-none', group:'Треба оновити', dot:'var(--orange)'}
+  };
+  var IORDER = ['оновити', 'актуальна', 'чернетка'];
+  var STATUS_BY = {ideas:STATUS, tasks:TSTATUS, instr:ISTATUS};
+  var ORDER_BY = {ideas:ORDER, tasks:TORDER, instr:IORDER};
+  var DEF_STATUS = {ideas:'нова', tasks:'треба', instr:'чернетка'};
   var K = {
     ideas:{one:'Ідея', acc:'Ідею', gen:'Ідей', low:'ідея', all:'Дошка · усі ідеї', pre:'Дошка · ', general:'Загальна ідея', ph:'Коротко: що за ідея?', edit:'Редагувати ідею'},
     notes:{one:'Нотатка', acc:'Нотатку', gen:'Нотаток', low:'нотатка', all:'Усі нотатки', pre:'Нотатки · ', general:'Загальна нотатка', ph:'Що записати?', edit:'Редагувати нотатку'},
     tasks:{one:'Завдання', acc:'Завдання', gen:'Завдань', low:'завдання', all:'Усі завдання', pre:'Завдання · ', general:'Загальне завдання', ph:'Що зробити?', edit:'Редагувати завдання'},
+    instr:{one:'Інструкція', acc:'Інструкцію', gen:'Інструкцій', low:'інструкція', all:'Усі інструкції', pre:'Інструкції · ', general:'Загальна інструкція', ph:'Назва інструкції', edit:'Редагувати інструкцію'},
     web:{one:'Сторінка', acc:'Сторінку', gen:'Сторінок', low:'сторінка', all:'Веб-сторінки', pre:'Веб-сторінки · ', general:'Сторінка', ph:'Назва сторінки', edit:'Редагувати сторінку'}
   };
   // extra copies of general modules have kind '<base>~<id>' (e.g. 'ideas~k3x'); lookups fall back to the base kind
   function base(k){ return typeof k === 'string' && k.indexOf('~') > 0 ? k.slice(0, k.indexOf('~')) : k; }
   function byBase(obj){ return new Proxy(obj, {get:function(o, k){ return (k in o) ? o[k] : o[base(k)]; }}); }
   STATUS_BY = byBase(STATUS_BY); ORDER_BY = byBase(ORDER_BY); DEF_STATUS = byBase(DEF_STATUS); K = byBase(K);
-  var KINDS = ['ideas', 'notes', 'tasks'];
-  var REC_KINDS = ['ideas', 'notes', 'tasks'];
+  var KINDS = ['ideas', 'notes', 'tasks', 'instr'];
+  var REC_KINDS = ['ideas', 'notes', 'tasks', 'instr'];
   // plugin-specific modules (by plugin index in M)
   var PMODS = {
     0:[{id:'aud', name:'Аудиторія', desc:'Сегменти, болі й задачі клієнтів'},
@@ -556,6 +570,10 @@ a{color:var(--accent)}
   function save(){ try { localStorage.setItem(KEY, JSON.stringify(st)); } catch(e){} }
   var st = load() || {p:0, view:{kind:'ideas', m:'all'}, ideas:clone(SEED_IDEAS), notes:clone(SEED_NOTES), mods:[[0,1,2,3,4],[0,1],[1]]};
   if (!st.tasks) st.tasks = clone(SEED_TASKS);
+  if (!st.instr) st.instr = [{
+    0:[{t:'Як запускати тест креативу', s:'актуальна', b:'Бюджет, тривалість, коли зупиняти', notion:''}],
+    g:[{t:'Як вести ідеї на дошці', s:'чернетка', b:'Статуси, посилання, Чат і Notion', notion:''}]
+  }];
   if (!st.md) st.md = seedMods();
   // web-page modules: one module = one page. st.wp[project] = [{id, plugin: index | 'g', t, url}]
   if (!st.wp) {
@@ -565,6 +583,7 @@ a{color:var(--accent)}
   }
   // general modules switched on per project (ideas / notes / tasks); general web pages = st.wp with plugin 'g'
   if (!st.gen) st.gen = {};
+  if (!st.instrOn) { Object.keys(st.gen).forEach(function(p){ if (st.gen[p].indexOf('instr') < 0) st.gen[p].push('instr'); }); st.instrOn = 1; }
   function genOn(){ return st.gen[st.p] || (st.gen[st.p] = KINDS.slice()); }
   function pagesOf(pl){ st.wp[st.p] = st.wp[st.p] || []; return st.wp[st.p].filter(function(x){ return x.plugin === pl; }); }
   function pageById(id){ return (st.wp[st.p] || []).filter(function(x){ return x.id === id; })[0]; }
@@ -810,10 +829,11 @@ a{color:var(--accent)}
     ideas:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/></svg>',
     notes:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 4h10l4 4v12H5z"/><path d="M9 12h6M9 16h4"/></svg>',
     tasks:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8.5 12.5l2.5 2.5 5-5.5"/></svg>',
+    instr:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M9 8h6M9 12h4"/></svg>',
     web:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z"/></svg>',
     mod:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>'
   };
-  var KNAME = {ideas:'Ідеї', notes:'Нотатки', tasks:'Завдання'};
+  var KNAME = {ideas:'Ідеї', notes:'Нотатки', tasks:'Завдання', instr:'Інструкції'};
   KICON = byBase(KICON);
   KNAME = new Proxy(KNAME, {get:function(o, k){ if (k in o) return o[k]; var b = base(k); return b !== k ? ((st.gname || {})[k.slice(b.length + 1)] || o[b]) : undefined; }});
 
@@ -867,7 +887,7 @@ a{color:var(--accent)}
   // «Усі плагіни»: only general modules — ideas / notes / tasks / web page
   function openGenCatalog(){
     var body = el('div', {'class':'rows'}), on = genOn();
-    var DESC = {ideas:'Гіпотези зі статусами — від «нова» до «спрацювало»', notes:'Короткі записи, посилання, Чат і Notion', tasks:'Що зробити, хто і коли'};
+    var DESC = {instr:'Картка відкриває сторінку Notion з інструкцією', ideas:'Гіпотези зі статусами — від «нова» до «спрацювало»', notes:'Короткі записи, посилання, Чат і Notion', tasks:'Що зробити, хто і коли'};
     function row(icon, name, desc, btnText, cls, fn, added){
       var r = el('div', {'class':'rowbtn','style':'cursor:default' + (added ? ';background:var(--side)' : '')}, icon + '<span style="flex:1;min-width:0"><b style="font-weight:600">' + esc(name) + '</b><small style="display:block;color:var(--faint);font-size:13px;margin-top:2px">' + esc(desc) + '</small></span>');
       var b = el('button', {'class':'ghost','style':'flex:none;display:inline-flex;align-items:center;gap:6px;font-weight:600;' + (added ? 'color:var(--muted)' : 'color:var(--accent)')}, btnText);
@@ -1021,8 +1041,9 @@ a{color:var(--accent)}
 
   /* ── sheets ── */
   var lastFocus;
-  function openSheet(title, body){
+  function openSheet(title, body, wide){
     lastFocus = document.activeElement;
+    $('sheet').classList.toggle('wide', !!wide);
     $('shTitle').textContent = title;
     var b = $('shBody'); b.innerHTML = ''; b.appendChild(body);
     $('scrim').classList.add('open'); $('sheet').classList.add('open');
@@ -1152,8 +1173,28 @@ a{color:var(--accent)}
     if (focusKey && svcIn[focusKey]) setTimeout(function(){ svcIn[focusKey].scrollIntoView({block:'center'}); svcIn[focusKey].focus(); }, 120);
   }
   function openAdd(){ openForm(null); }
+  // instruction card → popup with its Notion page
+  function openInstr(kind, e){
+    var c = e.c, body = el('div');
+    var tools = el('div', {'class':'ntools'});
+    if (c.notion) tools.appendChild(el('a', {'href':c.notion,'target':'_blank','rel':'noopener noreferrer nofollow'}, DOC_ICON.replace('16" height="16','14" height="14') + '<span>Відкрити в Notion</span>'));
+    var det = el('button', {}, '<span>Статус і деталі</span>'); det.onclick = function(){ openCard(kind, e, true); };
+    var ed = el('button', {}, '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg><span>Редагувати</span>');
+    ed.onclick = function(){ openForm({kind:kind, e:e}, c.notion ? null : 'notion'); };
+    tools.appendChild(det); tools.appendChild(ed); body.appendChild(tools);
+    if (c.notion) {
+      body.appendChild(el('iframe', {'class':'nframe','src':c.notion,'title':c.t,'referrerpolicy':'no-referrer',
+        'sandbox':'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox'}));
+      body.appendChild(el('p', {'class':'shint','style':'margin:8px 2px 0;font-size:13px;color:var(--faint)'}, 'Порожньо? Notion показує у вікні лише сторінки, опубліковані через Share → Publish (адреса *.notion.site). Інакше — «Відкрити в Notion».'));
+    } else {
+      body.appendChild(el('div', {'style':'flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:40px 16px;border:1px dashed var(--line);border-radius:12px;color:var(--muted)'},
+        DOC_ICON + '<span style="font-size:15px;line-height:1.5">До інструкції ще не додано сторінку Notion.<br>Натисніть «Редагувати» і вставте посилання.</span>'));
+    }
+    openSheet(c.t, body, true);
+  }
 
-  function openCard(kind, e){
+  function openCard(kind, e, details){
+    if (base(kind) === 'instr' && !details) { openInstr(kind, e); return; }
     var c = e.c, body = el('div');
     if (c.b) body.appendChild(el('p', {'style':'margin:0 0 4px;font-size:15px;line-height:1.55;color:var(--muted);white-space:pre-line'}, esc(c.b)));
     body.appendChild(el('div', {'style':'margin-top:6px'}, plugHTML(e.mi) + (base(kind) === 'notes' ? '<span class="meta mono" style="display:block;margin-top:4px">'+esc(c.m)+'</span>' : '')));
@@ -1193,7 +1234,7 @@ a{color:var(--accent)}
     edt.onclick = function(){ openForm({kind:kind, e:e}); };
     row.appendChild(edt);
     var ask = el('button', {'class':'ghost'}, 'Спитати агента');
-    ask.onclick = function(){ closeSheet(); openAgent(base(kind) === 'ideas' ? AGENT_BY_STATUS[c.s || 'нова'] : base(kind) === 'tasks' ? AGENT_TASK[c.s || 'треба'] : isMod(kind) ? 'Що з цього запису впливає на рішення? Можу запропонувати перевірку і завдання під неї.' : 'Ця нотатка може стати ідеєю: що з неї варто перевірити?', c.t); };
+    ask.onclick = function(){ closeSheet(); openAgent(base(kind) === 'ideas' ? AGENT_BY_STATUS[c.s || 'нова'] : base(kind) === 'tasks' ? AGENT_TASK[c.s || 'треба'] : base(kind) === 'instr' ? 'Можу перевірити, чи інструкція ще актуальна, і запропонувати, що оновити.' : isMod(kind) ? 'Що з цього запису впливає на рішення? Можу запропонувати перевірку і завдання під неї.' : 'Ця нотатка може стати ідеєю: що з неї варто перевірити?', c.t); };
     row.appendChild(ask);
     if (base(kind) === 'notes') {
       var toIdea = el('button', {'class':'ghost'}, 'Зробити ідеєю');
