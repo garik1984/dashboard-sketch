@@ -648,11 +648,13 @@ a{color:var(--accent)}
   var DOC_ICON  = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h5"/></svg>';
   var SVC = {
     chat:   {label:'Чат',    hint:'Посилання на чат з Claude', ph:'https://claude.ai/chat/…', hosts:['claude.ai'], icon:CHAT_ICON},
-    notion: {label:'Notion', hint:'Посилання на сторінку Notion', ph:'https://www.notion.so/…', hosts:['notion.so','notion.site'], icon:DOC_ICON}
+    notion: {label:'Notion', hint:'Посилання на сторінку Notion', ph:'https://www.notion.so/…', hosts:['notion.so','notion.site','notion.com'], icon:DOC_ICON}
   };
   // URL must be http(s) and belong to the service's domain (or its subdomain)
   function normSvc(raw, key){
-    var u = normUrl(raw); if (!u) return u;
+    // shared text from apps may hold a title plus the link — take the first http(s) link
+    var found = String(raw || '').match(/https?:\/\/[^\s<>"']+/i);
+    var u = normUrl(found ? found[0] : raw); if (!u) return u;
     var h = new URL(u).hostname.toLowerCase();
     return SVC[key].hosts.some(function(d){ return h === d || h.slice(-(d.length + 1)) === '.' + d; }) ? u : null;
   }
@@ -1193,12 +1195,16 @@ a{color:var(--accent)}
   function notionAppUrl(u){
     try { var x = new URL(u); } catch(err){ return null; }
     var m = x.pathname.replace(/-/g, '').match(/[0-9a-f]{32}(?=[^0-9a-f]*$)/i);
-    if (m) return 'notion://www.notion.so/' + m[0];
-    return /(^|\.)notion\.so$/.test(x.hostname) ? 'notion://' + x.hostname + x.pathname : null;
+    var path = m ? 'www.notion.so/' + m[0] : (/(^|\.)notion\.(so|com)$/.test(x.hostname) ? x.hostname + x.pathname : null);
+    if (!path) return null;
+    // Android: intent link opens the Notion app (package notion.id), else Chrome falls back to the web page
+    if (/Android/i.test(navigator.userAgent)) return 'intent://' + path + '#Intent;scheme=https;package=notion.id;S.browser_fallback_url=' + encodeURIComponent(u) + ';end';
+    return 'notion://' + path;
   }
   function openNotion(url){
     if (!isPhone()) return false;
     var app = notionAppUrl(url); if (!app) return false;
+    if (app.indexOf('intent://') === 0) { location.href = app; return true; }
     var left = false;
     function onHide(){ if (document.hidden) left = true; }
     document.addEventListener('visibilitychange', onHide);
