@@ -165,6 +165,15 @@ a{color:var(--accent)}
 .lopen b{font-weight:600;white-space:nowrap}
 .lopen span{color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .lopen svg{flex:none;color:var(--blue)}
+/* chat + notion */
+.svcs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.svc{display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 12px;border-radius:12px;border:1px solid var(--ink);background:var(--ink);color:var(--bg);font-size:15px;font-weight:600;text-decoration:none}
+.svc.empty{background:transparent;color:var(--muted);border:1px dashed var(--line);font-weight:500}
+.svc svg{flex:none}
+.pills{display:flex;gap:6px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--line2);color:var(--ink2)}
+.pill svg{flex:none}
+.flabel{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);margin:10px 0 6px}
 /* mobile-only blocks hidden on desktop */
 .mfilters,.mbar,.mlist{display:none}
 .ver{position:fixed;right:12px;bottom:10px;font-size:11px;color:var(--faint);pointer-events:none}
@@ -413,6 +422,24 @@ a{color:var(--accent)}
     try { var u = new URL(s); if (u.protocol !== 'http:' && u.protocol !== 'https:') return null; if (!/\./.test(u.hostname)) return null; return u.href; } catch(e){ return null; }
   }
   function host(u){ try { return new URL(u).hostname.replace(/^www\./, ''); } catch(e){ return u; } }
+  var CHAT_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>';
+  var DOC_ICON  = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h5"/></svg>';
+  var SVC = {
+    chat:   {label:'Чат',    hint:'Посилання на чат з Claude', ph:'https://claude.ai/chat/…', hosts:['claude.ai'], icon:CHAT_ICON},
+    notion: {label:'Notion', hint:'Посилання на сторінку Notion', ph:'https://www.notion.so/…', hosts:['notion.so','notion.site'], icon:DOC_ICON}
+  };
+  // URL must be http(s) and belong to the service's domain (or its subdomain)
+  function normSvc(raw, key){
+    var u = normUrl(raw); if (!u) return u;
+    var h = new URL(u).hostname.toLowerCase();
+    return SVC[key].hosts.some(function(d){ return h === d || h.slice(-(d.length + 1)) === '.' + d; }) ? u : null;
+  }
+  function svcPills(c){
+    var out = '';
+    if (c.chat) out += '<span class="pill">' + CHAT_ICON.replace('16" height="16','11" height="11') + 'Чат</span>';
+    if (c.notion) out += '<span class="pill">' + DOC_ICON.replace('16" height="16','11" height="11') + 'Notion</span>';
+    return out ? '<span class="pills">' + out + '</span>' : '';
+  }
   function linksLine(c){
     var l = c.l || []; if (!l.length) return '';
     return '<span class="links">' + LINK_ICON + '<span>' + esc(host(l[0])) + (l.length > 1 ? ' · +' + (l.length - 1) : '') + '</span></span>';
@@ -429,11 +456,11 @@ a{color:var(--accent)}
   function cardHTML(v, e, compact){
     var c = e.c;
     if (v.kind === 'notes')
-      return '<span class="badge b-note">Нотатка</span><h2>'+esc(c.t)+'</h2>' + (c.b ? '<p>'+esc(c.b)+'</p>' : '') + linksLine(c) + (compact
+      return '<span class="badge b-note">Нотатка</span><h2>'+esc(c.t)+'</h2>' + (c.b ? '<p>'+esc(c.b)+'</p>' : '') + linksLine(c) + svcPills(c) + (compact
         ? '<div class="foot">'+plugHTML(e.mi)+'<span class="meta mono">'+esc(c.m)+'</span></div>'
         : plugHTML(e.mi)+'<span class="meta mono">'+esc(c.m)+'</span>');
     var S = STATUS[c.s] || STATUS['нова'];
-    return (compact ? '' : '<span class="badge '+S.cls+'">'+S.label+'</span>') + '<h2>'+esc(c.t)+'</h2>' + (c.b ? '<p>'+esc(c.b)+'</p>' : '') + linksLine(c) +
+    return (compact ? '' : '<span class="badge '+S.cls+'">'+S.label+'</span>') + '<h2>'+esc(c.t)+'</h2>' + (c.b ? '<p>'+esc(c.b)+'</p>' : '') + linksLine(c) + svcPills(c) +
       (compact ? '<div class="foot">'+plugHTML(e.mi)+'<span class="badge '+S.cls+'">'+S.label+'</span></div>' : plugHTML(e.mi));
   }
 
@@ -613,7 +640,7 @@ a{color:var(--accent)}
   function plugOptions(){ return [{v:'g', label:'Загальна'}].concat(st.mods[st.p].map(function(mi){ return {v:mi, label:M[mi].name, color:M[mi].color}; })); }
 
   // one form for adding and editing; `edit` = {kind, e} when editing
-  function openForm(edit){
+  function openForm(edit, focusKey){
     var v = V();
     var kind = edit ? edit.kind : v.kind;
     var mi = edit ? edit.e.mi : (v.m === 'all' ? 'g' : v.m);
@@ -649,6 +676,15 @@ a{color:var(--accent)}
       });
       return bad ? null : out;
     }
+    var ss = el('div', {'class':'shsec'}, '<span class="label">Чат і Notion</span>');
+    var svcIn = {};
+    ['chat', 'notion'].forEach(function(key){
+      ss.appendChild(el('label', {'class':'flabel','for':'f-'+key}, SVC[key].icon + SVC[key].hint));
+      var inp = el('input', {'class':'inp','id':'f-'+key,'type':'url','inputmode':'url','autocapitalize':'off','autocorrect':'off','spellcheck':'false','placeholder':SVC[key].ph});
+      inp.value = (c0 && c0[key]) || '';
+      inp.oninput = function(){ inp.classList.remove('bad'); };
+      svcIn[key] = inp; ss.appendChild(inp);
+    });
     var s1 = el('div', {'class':'shsec'}, '<span class="label">Тип</span>');
     s1.appendChild(optRow([{v:'ideas', label:'Ідея'}, {v:'notes', label:'Нотатка'}], kind, function(x){ kind = x; ph(); }));
     var s2 = el('div', {'class':'shsec'}, '<span class="label">Плагін</span>');
@@ -659,14 +695,21 @@ a{color:var(--accent)}
       var details = d.value.trim();
       var links = collectLinks();
       if (links === null) { toast('Перевірте посилання: потрібна вебадреса, напр. example.com'); return; }
+      var svc = {}, badSvc = null;
+      ['chat', 'notion'].forEach(function(key){
+        var u = normSvc(svcIn[key].value, key);
+        if (u === null) { svcIn[key].classList.add('bad'); badSvc = badSvc || key; }
+        svc[key] = u || '';
+      });
+      if (badSvc) { toast(badSvc === 'chat' ? 'Поле «Чат»: потрібне посилання claude.ai' : 'Поле «Notion»: потрібне посилання notion.so або notion.site'); svcIn[badSvc].focus(); return; }
       if (edit) {
         var sameBucket = kind === edit.kind && mi === edit.e.mi;
-        if (sameBucket) { c0.t = title; c0.b = details; c0.l = links; }
+        if (sameBucket) { c0.t = title; c0.b = details; c0.l = links; c0.chat = svc.chat; c0.notion = svc.notion; }
         else {
           remove(edit.kind === 'ideas' ? st.ideas : st.notes, edit.e);
           var moved = kind === 'ideas'
-            ? {t:title, b:details, l:links, s: edit.kind === 'ideas' ? (c0.s || 'нова') : 'нова'}
-            : {t:title, b:details, l:links, m: c0.m || 'щойно'};
+            ? {t:title, b:details, l:links, chat:svc.chat, notion:svc.notion, s: edit.kind === 'ideas' ? (c0.s || 'нова') : 'нова'}
+            : {t:title, b:details, l:links, chat:svc.chat, notion:svc.notion, m: c0.m || 'щойно'};
           bucket(kind === 'ideas' ? st.ideas : st.notes, st.p, mi).push(moved);
           if (v.m !== 'all') st.view = {kind:kind, m:mi}; else st.view = {kind:kind, m:'all'};
         }
@@ -674,8 +717,8 @@ a{color:var(--accent)}
         toast(sameBucket ? 'Зміни збережено' : 'Збережено · ' + (kind === 'ideas' ? 'ідея' : 'нотатка') + ' · ' + modName(mi));
         return;
       }
-      if (kind === 'ideas') bucket(st.ideas, st.p, mi).push({t:title, s:'нова', b:details, l:links});
-      else bucket(st.notes, st.p, mi).push({t:title, b:details, l:links, m:'щойно'});
+      if (kind === 'ideas') bucket(st.ideas, st.p, mi).push({t:title, s:'нова', b:details, l:links, chat:svc.chat, notion:svc.notion});
+      else bucket(st.notes, st.p, mi).push({t:title, b:details, l:links, chat:svc.chat, notion:svc.notion, m:'щойно'});
       st.view = {kind:kind, m: v.m === 'all' ? 'all' : mi};
       save(); closeSheet(); render();
       setTimeout(function(){ var c = $('canvas'); c.scrollTo({top: isPhone() && kind === 'notes' ? 0 : c.scrollHeight, behavior:'smooth'}); }, 60);
@@ -684,13 +727,14 @@ a{color:var(--accent)}
     ok.onclick = submit;
     t.onkeydown = function(ev){ if (ev.key === 'Enter') submit(); };
     body.appendChild(t); body.appendChild(el('div', {'style':'height:8px'})); body.appendChild(d);
-    body.appendChild(sl); body.appendChild(s1); body.appendChild(s2); body.appendChild(ok);
+    body.appendChild(ss); body.appendChild(sl); body.appendChild(s1); body.appendChild(s2); body.appendChild(ok);
     if (edit) {
       var back = el('button', {'class':'ghost','style':'width:100%;margin-top:8px'}, 'Скасувати');
       back.onclick = function(){ openCard(edit.kind, edit.e); };
       body.appendChild(back);
     }
     openSheet(edit ? (edit.kind === 'ideas' ? 'Редагувати ідею' : 'Редагувати нотатку') : 'Додати', body);
+    if (focusKey && svcIn[focusKey]) setTimeout(function(){ svcIn[focusKey].scrollIntoView({block:'center'}); svcIn[focusKey].focus(); }, 120);
   }
   function openAdd(){ openForm(null); }
 
@@ -698,6 +742,19 @@ a{color:var(--accent)}
     var c = e.c, body = el('div');
     if (c.b) body.appendChild(el('p', {'style':'margin:0 0 4px;font-size:15px;line-height:1.55;color:var(--muted);white-space:pre-line'}, esc(c.b)));
     body.appendChild(el('div', {'style':'margin-top:6px'}, plugHTML(e.mi) + (kind === 'notes' ? '<span class="meta mono" style="display:block;margin-top:4px">'+esc(c.m)+'</span>' : '')));
+    var svcs = el('div', {'class':'svcs'});
+    ['chat', 'notion'].forEach(function(key){
+      var url = c[key];
+      if (url) {
+        var a = el('a', {'class':'svc','href':url,'target':'_blank','rel':'noopener noreferrer nofollow'}, SVC[key].icon + SVC[key].label);
+        svcs.appendChild(a);
+      } else {
+        var b = el('button', {'class':'svc empty','title':'Додати: ' + SVC[key].hint}, '+ ' + SVC[key].label);
+        b.onclick = function(){ openForm({kind:kind, e:e}, key); };
+        svcs.appendChild(b);
+      }
+    });
+    body.appendChild(svcs);
     if (c.l && c.l.length) {
       var ls = el('div', {'class':'shsec'}, '<span class="label">Посилання · ' + c.l.length + '</span>');
       c.l.forEach(function(u){
@@ -723,7 +780,7 @@ a{color:var(--accent)}
     row.appendChild(ask);
     if (kind === 'notes') {
       var toIdea = el('button', {'class':'ghost'}, 'Зробити ідеєю');
-      toIdea.onclick = function(){ remove(st.notes, e); bucket(st.ideas, st.p, e.mi).push({t:c.t, s:'нова', b:c.b || '', l:c.l || []}); st.view = {kind:'ideas', m:e.mi === 'g' ? 'all' : e.mi}; save(); closeSheet(); render(); toast('Нотатку перетворено на ідею'); };
+      toIdea.onclick = function(){ remove(st.notes, e); bucket(st.ideas, st.p, e.mi).push({t:c.t, s:'нова', b:c.b || '', l:c.l || [], chat:c.chat || '', notion:c.notion || ''}); st.view = {kind:'ideas', m:e.mi === 'g' ? 'all' : e.mi}; save(); closeSheet(); render(); toast('Нотатку перетворено на ідею'); };
       row.appendChild(toIdea);
     }
     var del = el('button', {'class':'ghost danger'}, 'Видалити');
