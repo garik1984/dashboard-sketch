@@ -583,6 +583,12 @@ a{color:var(--accent)}
   }
   // general modules switched on per project (ideas / notes / tasks); general web pages = st.wp with plugin 'g'
   if (!st.gen) st.gen = {};
+  // demo instruction with a public, published Notion page (added once, also for saved states)
+  if (!st.instrDemo) {
+    st.instr = st.instr || [];
+    bucket(st.instr, 0, 'g').unshift({t:'Як користуватися Notion', s:'актуальна', b:'Сторінки, бази, шаблони — короткий гайд (публічна сторінка, демо)', l:[], chat:'', notion:'https://utat-ss.notion.site/Notion-8908b4afab364863b004875ed1b86bb9'});
+    st.instrDemo = 1;
+  }
   if (!st.instrOn) { Object.keys(st.gen).forEach(function(p){ if (st.gen[p].indexOf('instr') < 0) st.gen[p].push('instr'); }); st.instrOn = 1; }
   function genOn(){ return st.gen[st.p] || (st.gen[st.p] = KINDS.slice()); }
   function pagesOf(pl){ st.wp[st.p] = st.wp[st.p] || []; return st.wp[st.p].filter(function(x){ return x.plugin === pl; }); }
