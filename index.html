@@ -389,6 +389,10 @@ a{color:var(--accent)}
     tasks:{one:'Завдання', acc:'Завдання', gen:'Завдань', low:'завдання', all:'Усі завдання', pre:'Завдання · ', general:'Загальне завдання', ph:'Що зробити?', edit:'Редагувати завдання'},
     web:{one:'Сторінка', acc:'Сторінку', gen:'Сторінок', low:'сторінка', all:'Веб-сторінки', pre:'Веб-сторінки · ', general:'Сторінка', ph:'Назва сторінки', edit:'Редагувати сторінку'}
   };
+  // extra copies of general modules have kind '<base>~<id>' (e.g. 'ideas~k3x'); lookups fall back to the base kind
+  function base(k){ return typeof k === 'string' && k.indexOf('~') > 0 ? k.slice(0, k.indexOf('~')) : k; }
+  function byBase(obj){ return new Proxy(obj, {get:function(o, k){ return (k in o) ? o[k] : o[base(k)]; }}); }
+  STATUS_BY = byBase(STATUS_BY); ORDER_BY = byBase(ORDER_BY); DEF_STATUS = byBase(DEF_STATUS); K = byBase(K);
   var KINDS = ['ideas', 'notes', 'tasks'];
   var REC_KINDS = ['ideas', 'notes', 'tasks'];
   // plugin-specific modules (by plugin index in M)
@@ -567,7 +571,7 @@ a{color:var(--accent)}
   function isPage(kind){ return kind && kind.indexOf('page:') === 0; }
   // repair a saved view left by older sketch versions (e.g. kind 'web'), or one pointing to a removed module/page
   (function(){
-    var v = st.view || {}, k = v.kind, ok = k === 'ideas' || k === 'notes' || k === 'tasks';
+    var v = st.view || {}, k = v.kind, ok = KINDS.indexOf(base(k)) >= 0;
     var plugs = st.mods[st.p] || [];
     if (v.m !== 'all' && plugs.indexOf(v.m) < 0) v.m = 'all';
     if (isPage(k)) ok = !!(st.wp[st.p] || []).filter(function(x){ return x.id === k.slice(5); })[0];
@@ -575,8 +579,9 @@ a{color:var(--accent)}
     if (!ok) { v.kind = 'ideas'; }
     st.view = {kind:v.kind, m:v.m};
   })();
-  function storeOf(k){ if (isMod(k)) { var id = k.slice(4); return st.md[id] || (st.md[id] = {}); } return st[k]; }
+  function storeOf(k){ if (base(k) !== k) { st.gx = st.gx || {}; var gid = k.slice(base(k).length + 1); return st.gx[gid] || (st.gx[gid] = {}); } if (isMod(k)) { var id = k.slice(4); return st.md[id] || (st.md[id] = {}); } return st[k]; }
   function KL(kind){
+    if (base(kind) !== kind) { var b = K[kind], nm = KNAME[kind]; return {one:b.one, acc:b.acc, gen:b.gen, low:b.low, all:nm, pre:nm + ' · ', general:b.general, ph:b.ph, edit:b.edit}; }
     if (K[kind]) return K[kind];
     var d = modDef(kind).d;
     return {one:d.name, acc:'Запис', gen:'Записів', low:'запис', all:d.name, pre:d.name + ' · ', general:d.name, ph:'Назва', edit:'Редагувати · ' + d.name};
@@ -595,7 +600,7 @@ a{color:var(--accent)}
     if (v.m !== 'all' && st.mods[st.p].indexOf(v.m) < 0) v = st.view = {kind:isMod(v.kind) || isPage(v.kind) ? 'ideas' : (v.kind || 'ideas'), m:'all'};
     if (isMod(v.kind)) { var f = modDef(v.kind); if (!f || v.m === 'all' || f.plugin !== v.m || !installed(v.m).some(function(d){ return 'mod:' + d.id === v.kind; })) v = st.view = {kind:'ideas', m:v.m}; }
     if (isPage(v.kind)) { var pg = pageById(v.kind.slice(5)); if (!pg || (pg.plugin !== 'g' && pg.plugin !== v.m)) v = st.view = {kind:'ideas', m:v.m}; }
-    if (KINDS.indexOf(v.kind) >= 0 && genOn().indexOf(v.kind) < 0) {
+    if (KINDS.indexOf(base(v.kind)) >= 0 && genOn().indexOf(v.kind) < 0) {
       var g0 = pagesOf('g')[0];
       v = st.view = {kind: genOn()[0] || (g0 ? 'page:' + g0.id : v.kind), m:v.m};
     }
@@ -652,7 +657,7 @@ a{color:var(--accent)}
       return (compact ? '' : '<span class="badge b-mod">'+esc(dn)+'</span>') + '<h2>'+esc(c.t)+'</h2>' + (c.b ? '<p>'+esc(c.b)+'</p>' : '') + (c.v ? '<span class="val">'+esc(c.v)+'</span>' : '') + linksLine(c) + svcPills(c) +
         (compact ? '<div class="foot">'+plugHTML(e.mi)+'<span class="badge b-mod">'+esc(dn)+'</span></div>' : plugHTML(e.mi));
     }
-    if (v.kind === 'notes')
+    if (base(v.kind) === 'notes')
       return '<span class="badge b-note">Нотатка</span><h2>'+esc(c.t)+'</h2>' + (c.b ? '<p>'+esc(c.b)+'</p>' : '') + linksLine(c) + svcPills(c) + (compact
         ? '<div class="foot">'+plugHTML(e.mi)+'<span class="meta mono">'+esc(c.m)+'</span></div>'
         : plugHTML(e.mi)+'<span class="meta mono">'+esc(c.m)+'</span>');
@@ -789,7 +794,7 @@ a{color:var(--accent)}
       b.onclick = function(){ openCard(v.kind, e); };
       list.appendChild(b);
     }
-    if (v.kind === 'notes') { entries.slice().reverse().forEach(card); return; }
+    if (base(v.kind) === 'notes') { entries.slice().reverse().forEach(card); return; }
     if (isMod(v.kind)) { list.appendChild(el('div', {'class':'grp'}, esc(modDef(v.kind).d.desc))); entries.forEach(card); return; }
     var T = STATUS_BY[v.kind];
     ORDER_BY[v.kind].forEach(function(s){
@@ -809,6 +814,8 @@ a{color:var(--accent)}
     mod:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>'
   };
   var KNAME = {ideas:'Ідеї', notes:'Нотатки', tasks:'Завдання'};
+  KICON = byBase(KICON);
+  KNAME = new Proxy(KNAME, {get:function(o, k){ if (k in o) return o[k]; var b = base(k); return b !== k ? ((st.gname || {})[k.slice(b.length + 1)] || o[b]) : undefined; }});
 
   /* ── web-page module: one module = one page shown on the board ── */
   function renderPage(pg){
@@ -867,17 +874,47 @@ a{color:var(--accent)}
       b.onclick = function(){ fn(b); };
       r.appendChild(b); body.appendChild(r);
     }
-    var DONE = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg> Додано';
+    body.appendChild(el('span', {'class':'label','style':'margin:2px 4px'}, 'Можна додати · кожен модуль кілька разів'));
     KINDS.forEach(function(k){
-      var has = on.indexOf(k) >= 0;
-      row(KICON[k], KNAME[k], DESC[k], has ? DONE : 'Додати', '', function(){
-        if (has) { closeSheet(); setView(k, V().m); return; }
-        on.push(k); on.sort(function(a, b){ return KINDS.indexOf(a) - KINDS.indexOf(b); });
-        st.view = {kind:k, m:V().m}; save(); closeSheet(); render(); toast('Модуль «' + KNAME[k] + '» додано');
-      }, has);
+      row(KICON[k], KNAME[k], DESC[k], 'Додати', '', function(){ openGenForm(k); });
     });
     row(KICON.web, 'Веб-сторінка', 'Одна сторінка на полі дошки. Можна додати кілька', 'Додати', '', function(){ openPageForm(null, 'g'); });
+    var pages = pagesOf('g');
+    body.appendChild(el('span', {'class':'label','style':'margin:14px 4px 2px'}, 'Уже додано · ' + (on.length + pages.length)));
+    on.forEach(function(k){
+      row(KICON[k], KNAME[k], base(k) !== k ? DESC[base(k)] + ' · окрема дошка' : DESC[k], 'Прибрати', '', function(b){
+        if (on.length + pages.length <= 1) { toast('Має лишитися хоча б один загальний модуль'); return; }
+        if (!b.dataset.armed) { b.dataset.armed = '1'; b.textContent = 'Точно?'; b.classList.add('danger'); return; }
+        var nm = KNAME[k];
+        st.gen[st.p] = on.filter(function(x){ return x !== k; });
+        save(); render(); openGenCatalog(); toast('Модуль «' + nm + '» прибрано. Записи збережено');
+      }, true);
+    });
+    pages.forEach(function(pg){ row(KICON.web, pg.t, host(pg.url), 'Налаштувати', '', function(){ openPageForm(pg, 'g'); }, true); });
     openSheet('Додати модуль', body);
+  }
+  function openGenForm(k){
+    var on = genOn(), body = el('div');
+    var n = on.filter(function(x){ return base(x) === k; }).length;
+    body.appendChild(el('p', {'style':'margin:0 0 12px;font-size:14px;line-height:1.5;color:var(--muted)'}, n ? 'Окрема дошка «' + KNAME[k] + '» зі своїми записами. Видно в усіх плагінах проєкту.' : 'Повертає основний модуль «' + KNAME[k] + '» з усіма його записами.'));
+    var t = el('input', {'class':'inp','placeholder':'Назва модуля','aria-label':'Назва модуля','maxlength':'40'});
+    t.value = n ? KNAME[k] + ' · ' + (n + 1) : KNAME[k];
+    if (!n) t.disabled = true;
+    var ok = el('button', {'class':'primary'}, 'Додати модуль');
+    ok.onclick = function(){
+      var kind = k;
+      if (n || on.indexOf(k) >= 0) {
+        var id = Date.now().toString(36); kind = k + '~' + id;
+        st.gname = st.gname || {}; st.gname[id] = t.value.trim() || KNAME[k] + ' · ' + (n + 1);
+        on.push(kind);
+      } else {
+        on.unshift(k); on.sort(function(a, b){ return (base(a) !== a) - (base(b) !== b) || KINDS.indexOf(base(a)) - KINDS.indexOf(base(b)); });
+      }
+      st.view = {kind:kind, m:V().m}; save(); closeSheet(); render(); toast('Модуль «' + KNAME[kind] + '» додано');
+    };
+    body.appendChild(t); body.appendChild(ok);
+    openSheet('Новий модуль · ' + KNAME[k], body);
+    setTimeout(function(){ if (!t.disabled) { t.focus(); t.select(); } }, 80);
   }
   function openModCatalog(pl){
     var body = el('div', {'class':'rows'});
@@ -1057,7 +1094,7 @@ a{color:var(--accent)}
       svcIn[key] = inp; ss.appendChild(inp);
     });
     var s1 = el('div', {'class':'shsec'}, '<span class="label">Тип</span>');
-    s1.appendChild(optRow(REC_KINDS.map(function(k){ return {v:k, label:K[k].one}; }), kind, function(x){ kind = x; ph(); }));
+    s1.appendChild(optRow(REC_KINDS.map(function(k){ var kk = base(kind) === k ? kind : k; return {v:kk, label:K[k].one + (kk !== k ? ' · ' + KNAME[kk] : '')}; }), kind, function(x){ kind = x; ph(); }));
     var s2 = el('div', {'class':'shsec'}, '<span class="label">Плагін</span>');
     s2.appendChild(optRow(plugOptions(), mi, function(x){ mi = x; }));
     var ok = el('button', {'class':'primary'}, edit ? 'Зберегти зміни' : 'Зберегти');
@@ -1081,7 +1118,7 @@ a{color:var(--accent)}
           var moved = {t:title, b:details, l:links, chat:svc.chat, notion:svc.notion};
           if (isMod(kind)) moved.v = vin.value.trim();
           if (STATUS_BY[kind]) moved.s = (kind === edit.kind && c0.s) ? c0.s : DEF_STATUS[kind];
-          if (kind === 'notes') moved.m = c0.m || 'щойно';
+          if (base(kind) === 'notes') moved.m = c0.m || 'щойно';
           bucket(storeOf(kind), st.p, mi).push(moved);
           if (v.m !== 'all') st.view = {kind:kind, m:mi}; else st.view = {kind:kind, m:'all'};
         }
@@ -1092,11 +1129,11 @@ a{color:var(--accent)}
       var item = {t:title, b:details, l:links, chat:svc.chat, notion:svc.notion};
       if (isMod(kind)) item.v = vin.value.trim();
       if (STATUS_BY[kind]) item.s = DEF_STATUS[kind];
-      if (kind === 'notes') item.m = 'щойно';
+      if (base(kind) === 'notes') item.m = 'щойно';
       bucket(storeOf(kind), st.p, mi).push(item);
       st.view = {kind:kind, m: v.m === 'all' ? 'all' : mi};
       save(); closeSheet(); render();
-      setTimeout(function(){ var c = $('canvas'); c.scrollTo({top: isPhone() && kind === 'notes' ? 0 : c.scrollHeight, behavior:'smooth'}); }, 60);
+      setTimeout(function(){ var c = $('canvas'); c.scrollTo({top: isPhone() && base(kind) === 'notes' ? 0 : c.scrollHeight, behavior:'smooth'}); }, 60);
       toast(KL(kind).acc + ' додано · ' + (isMod(kind) ? KL(kind).one : modName(mi)));
     }
     ok.onclick = submit;
@@ -1119,7 +1156,7 @@ a{color:var(--accent)}
   function openCard(kind, e){
     var c = e.c, body = el('div');
     if (c.b) body.appendChild(el('p', {'style':'margin:0 0 4px;font-size:15px;line-height:1.55;color:var(--muted);white-space:pre-line'}, esc(c.b)));
-    body.appendChild(el('div', {'style':'margin-top:6px'}, plugHTML(e.mi) + (kind === 'notes' ? '<span class="meta mono" style="display:block;margin-top:4px">'+esc(c.m)+'</span>' : '')));
+    body.appendChild(el('div', {'style':'margin-top:6px'}, plugHTML(e.mi) + (base(kind) === 'notes' ? '<span class="meta mono" style="display:block;margin-top:4px">'+esc(c.m)+'</span>' : '')));
     if (c.v) body.appendChild(el('div', {'style':'margin-top:10px'}, '<span class="val" style="font-size:14px;padding:6px 10px">' + esc(c.v) + '</span>'));
     var svcs = el('div', {'class':'svcs'});
     ['chat', 'notion'].forEach(function(key){
@@ -1156,9 +1193,9 @@ a{color:var(--accent)}
     edt.onclick = function(){ openForm({kind:kind, e:e}); };
     row.appendChild(edt);
     var ask = el('button', {'class':'ghost'}, 'Спитати агента');
-    ask.onclick = function(){ closeSheet(); openAgent(kind === 'ideas' ? AGENT_BY_STATUS[c.s || 'нова'] : kind === 'tasks' ? AGENT_TASK[c.s || 'треба'] : isMod(kind) ? 'Що з цього запису впливає на рішення? Можу запропонувати перевірку і завдання під неї.' : 'Ця нотатка може стати ідеєю: що з неї варто перевірити?', c.t); };
+    ask.onclick = function(){ closeSheet(); openAgent(base(kind) === 'ideas' ? AGENT_BY_STATUS[c.s || 'нова'] : base(kind) === 'tasks' ? AGENT_TASK[c.s || 'треба'] : isMod(kind) ? 'Що з цього запису впливає на рішення? Можу запропонувати перевірку і завдання під неї.' : 'Ця нотатка може стати ідеєю: що з неї варто перевірити?', c.t); };
     row.appendChild(ask);
-    if (kind === 'notes') {
+    if (base(kind) === 'notes') {
       var toIdea = el('button', {'class':'ghost'}, 'Зробити ідеєю');
       toIdea.onclick = function(){ remove(st.notes, e); bucket(st.ideas, st.p, e.mi).push({t:c.t, s:'нова', b:c.b || '', l:c.l || [], chat:c.chat || '', notion:c.notion || ''}); st.view = {kind:'ideas', m:e.mi === 'g' ? 'all' : e.mi}; save(); closeSheet(); render(); toast('Нотатку перетворено на ідею'); };
       row.appendChild(toIdea);
