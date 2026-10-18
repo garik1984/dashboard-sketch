@@ -556,9 +556,11 @@ a{color:var(--accent)}
   // web-page modules: one module = one page. st.wp[project] = [{id, plugin: index | 'g', t, url}]
   if (!st.wp) {
     st.wp = [[{id:'w1', plugin:0, t:'Вікіпедія · Маркетинг', url:'https://uk.wikipedia.org/wiki/%D0%9C%D0%B0%D1%80%D0%BA%D0%B5%D1%82%D0%B8%D0%BD%D0%B3'},
-              {id:'w2', plugin:'g', t:'Вікіпедія · Сон', url:'https://uk.wikipedia.org/wiki/%D0%A1%D0%BE%D0%BD'}]];
+              {id:'w2', plugin:3, t:'Вікіпедія · Сон', url:'https://uk.wikipedia.org/wiki/%D0%A1%D0%BE%D0%BD'}]];
     delete st.web; delete st.webSel;
   }
+  // pages belong to one plugin only — migrate old project-wide pages to the first plugin
+  (st.wp || []).forEach(function(list, pi){ (list || []).forEach(function(x){ if (x.plugin === 'g') x.plugin = (st.mods[pi] || [0])[0]; }); });
   function pagesOf(pl){ st.wp[st.p] = st.wp[st.p] || []; return st.wp[st.p].filter(function(x){ return x.plugin === pl; }); }
   function pageById(id){ return (st.wp[st.p] || []).filter(function(x){ return x.id === id; })[0]; }
   function isPage(kind){ return kind && kind.indexOf('page:') === 0; }
@@ -581,7 +583,7 @@ a{color:var(--accent)}
     var v = st.view || {kind:'ideas', m:'all'};
     if (v.m !== 'all' && st.mods[st.p].indexOf(v.m) < 0) v = st.view = {kind:isMod(v.kind) || isPage(v.kind) ? 'ideas' : (v.kind || 'ideas'), m:'all'};
     if (isMod(v.kind)) { var f = modDef(v.kind); if (!f || v.m === 'all' || f.plugin !== v.m || !installed(v.m).some(function(d){ return 'mod:' + d.id === v.kind; })) v = st.view = {kind:'ideas', m:v.m}; }
-    if (isPage(v.kind)) { var pg = pageById(v.kind.slice(5)); if (!pg || (pg.plugin !== 'g' && pg.plugin !== v.m)) v = st.view = {kind:'ideas', m:v.m}; }
+    if (isPage(v.kind)) { var pg = pageById(v.kind.slice(5)); if (!pg || pg.plugin !== v.m) v = st.view = {kind:'ideas', m:v.m}; }
     return v;
   }
   function setView(kind, m){ st.view = {kind:kind, m:m}; save(); render(); }
@@ -705,8 +707,6 @@ a{color:var(--accent)}
       c.onclick = function(){ setView(k, v.m); };
       mo.appendChild(c);
     }
-    pagesOf('g').forEach(pageChip);
-    if (v.m === 'all') { var addG = el('button', {'class':'chip add','aria-label':'Додати веб-сторінку'}, '+ сторінка'); addG.onclick = function(){ openPageForm(null, 'g'); }; mo.appendChild(addG); }
     if (v.m !== 'all') {
       mo.appendChild(el('span', {'class':'sep','aria-hidden':'true'}));
       pagesOf(v.m).forEach(pageChip);
@@ -728,7 +728,7 @@ a{color:var(--accent)}
     $('viewreset').hidden = v.kind === 'ideas' && v.m === 'all';
     if (isPage(v.kind)) {
       var pg = pageById(v.kind.slice(5));
-      $('btitle').textContent = (pg.plugin === 'g' ? '' : M[pg.plugin].name + ' · ') + pg.t;
+      $('btitle').textContent = M[pg.plugin].name + ' · ' + pg.t;
       renderPage(pg);
     } else {
       var entries = entriesFor(v), L = KL(v.kind);
@@ -811,7 +811,7 @@ a{color:var(--accent)}
   // create / edit a web-page module; pl = plugin index or 'g' (project-wide)
   function openPageForm(pg, pl){
     var body = el('div');
-    body.appendChild(el('p', {'style':'margin:0 0 12px;font-size:14px;line-height:1.5;color:var(--muted)'}, 'Модуль показує одну сторінку на полі дошки. Потрібна ще одна — додайте ще один модуль.'));
+    body.appendChild(el('p', {'style':'margin:0 0 12px;font-size:14px;line-height:1.5;color:var(--muted)'}, 'Модуль показує одну сторінку на полі дошки і належить лише цьому плагіну. Потрібна ще одна сторінка — додайте ще один модуль.'));
     var t = el('input', {'class':'inp','placeholder':'Назва модуля, напр. «Дашборд реклами»','aria-label':'Назва модуля','maxlength':'40'});
     var u = el('input', {'class':'inp','type':'url','inputmode':'url','autocapitalize':'off','autocorrect':'off','spellcheck':'false','placeholder':'https://…','aria-label':'Адреса сторінки'});
     if (pg) { t.value = pg.t; u.value = pg.url; }
@@ -824,7 +824,7 @@ a{color:var(--accent)}
       var isNew = !pg;
       if (pg) { pg.t = title; pg.url = url; }
       else { pg = {id:'w' + Date.now().toString(36), plugin:pl, t:title, url:url}; st.wp[st.p].push(pg); }
-      st.view = {kind:'page:' + pg.id, m: pl === 'g' ? V().m : pl};
+      st.view = {kind:'page:' + pg.id, m: pl};
       save(); closeSheet(); render(); toast(isNew ? 'Модуль «' + title + '» додано' : 'Модуль «' + title + '» збережено');
     };
     body.appendChild(t); body.appendChild(el('div', {'style':'height:8px'})); body.appendChild(u); body.appendChild(ok);
@@ -837,14 +837,14 @@ a{color:var(--accent)}
       };
       body.appendChild(del);
     }
-    openSheet(pg ? 'Веб-сторінка · налаштування' : 'Новий модуль · Веб-сторінка' + (pl === 'g' ? '' : ' · ' + M[pl].name), body);
+    openSheet(pg ? 'Веб-сторінка · налаштування' : 'Новий модуль · Веб-сторінка · ' + M[pl].name, body);
   }
   function openModCatalog(pl){
     var body = el('div', {'class':'rows'});
     var ids = installed(pl).map(function(d){ return d.id; });
     var avail = catalog(pl).filter(function(d){ return ids.indexOf(d.id) < 0; });
     body.appendChild(el('span', {'class':'label','style':'margin:2px 4px'}, 'Можна додати'));
-    var wr = el('div', {'class':'rowbtn','style':'cursor:default'}, KICON.web + '<span style="flex:1;min-width:0"><b style="font-weight:600">Веб-сторінка</b><small style="display:block;color:var(--faint);font-size:13px;margin-top:2px">Одна сторінка на полі дошки. Можна додавати скільки завгодно</small></span>');
+    var wr = el('div', {'class':'rowbtn','style':'cursor:default'}, KICON.web + '<span style="flex:1;min-width:0"><b style="font-weight:600">Веб-сторінка</b><small style="display:block;color:var(--faint);font-size:13px;margin-top:2px">Одна сторінка на полі дошки, лише в цьому плагіні. Можна додати кілька</small></span>');
     var wb = el('button', {'class':'ghost','style':'flex:none;font-weight:600;color:var(--accent)'}, 'Додати');
     wb.onclick = function(){ openPageForm(null, pl); };
     wr.appendChild(wb); body.appendChild(wr);
@@ -890,10 +890,6 @@ a{color:var(--accent)}
       b.onclick = function(){ setView(k, v.m); };
       box.appendChild(b);
     }
-    pagesOf('g').forEach(function(pg){ pageRow(pg, cr); });
-    var addG = el('button', {'class':'srow','style':'color:var(--accent);font-size:13px;min-height:38px'}, '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true" style="color:var(--accent)"><path d="M12 5v14M5 12h14"/></svg><span>Веб-сторінка для всього проєкту</span>');
-    addG.onclick = function(){ openPageForm(null, 'g'); };
-    cr.appendChild(addG);
     var lab = $('pluginLabel'), pr = $('pluginRows'); pr.innerHTML = '';
     if (v.m === 'all') {
       lab.innerHTML = 'Модулі плагінів';
