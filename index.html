@@ -403,7 +403,7 @@ a{color:var(--accent)}
   function cardHTML(v, e, compact){
     var c = e.c;
     if (v.kind === 'notes')
-      return '<span class="badge b-note">Нотатка</span><h2>'+esc(c.t)+'</h2>' + (compact
+      return '<span class="badge b-note">Нотатка</span><h2>'+esc(c.t)+'</h2>' + (c.b ? '<p>'+esc(c.b)+'</p>' : '') + (compact
         ? '<div class="foot">'+plugHTML(e.mi)+'<span class="meta mono">'+esc(c.m)+'</span></div>'
         : plugHTML(e.mi)+'<span class="meta mono">'+esc(c.m)+'</span>');
     var S = STATUS[c.s] || STATUS['нова'];
@@ -586,31 +586,60 @@ a{color:var(--accent)}
   }
   function plugOptions(){ return [{v:'g', label:'Загальна'}].concat(st.mods[st.p].map(function(mi){ return {v:mi, label:M[mi].name, color:M[mi].color}; })); }
 
-  function openAdd(){
-    var v = V(), kind = v.kind, mi = v.m === 'all' ? 'g' : v.m;
+  // one form for adding and editing; `edit` = {kind, e} when editing
+  function openForm(edit){
+    var v = V();
+    var kind = edit ? edit.kind : v.kind;
+    var mi = edit ? edit.e.mi : (v.m === 'all' ? 'g' : v.m);
+    var c0 = edit ? edit.e.c : null;
     var body = el('div');
-    var t = el('input', {'class':'inp','placeholder': 'Коротко: що за ідея?','aria-label':'Назва'});
-    var d = el('textarea', {'class':'inp','rows':'3','placeholder':'Деталі (необов’язково)','aria-label':'Деталі'});
+    var t = el('input', {'class':'inp','aria-label':'Назва','maxlength':'120'});
+    var d = el('textarea', {'class':'inp','rows':'4','placeholder':'Деталі (необов’язково)','aria-label':'Деталі'});
+    function ph(){ t.placeholder = kind === 'ideas' ? 'Коротко: що за ідея?' : 'Що записати?'; }
+    ph();
+    if (c0) { t.value = c0.t; d.value = c0.b || ''; }
     var s1 = el('div', {'class':'shsec'}, '<span class="label">Тип</span>');
-    s1.appendChild(optRow([{v:'ideas', label:'Ідея'}, {v:'notes', label:'Нотатка'}], kind, function(x){ kind = x; t.placeholder = x === 'ideas' ? 'Коротко: що за ідея?' : 'Що записати?'; }));
+    s1.appendChild(optRow([{v:'ideas', label:'Ідея'}, {v:'notes', label:'Нотатка'}], kind, function(x){ kind = x; ph(); }));
     var s2 = el('div', {'class':'shsec'}, '<span class="label">Плагін</span>');
     s2.appendChild(optRow(plugOptions(), mi, function(x){ mi = x; }));
-    var ok = el('button', {'class':'primary'}, 'Зберегти');
+    var ok = el('button', {'class':'primary'}, edit ? 'Зберегти зміни' : 'Зберегти');
     function submit(){
       var title = t.value.trim(); if (!title) { t.focus(); return; }
-      if (kind === 'ideas') bucket(st.ideas, st.p, mi).push({t:title, s:'нова', b:d.value.trim()});
-      else bucket(st.notes, st.p, mi).push({t:title, m:'щойно'});
+      var details = d.value.trim();
+      if (edit) {
+        var sameBucket = kind === edit.kind && mi === edit.e.mi;
+        if (sameBucket) { c0.t = title; c0.b = details; }
+        else {
+          remove(edit.kind === 'ideas' ? st.ideas : st.notes, edit.e);
+          var moved = kind === 'ideas'
+            ? {t:title, b:details, s: edit.kind === 'ideas' ? (c0.s || 'нова') : 'нова'}
+            : {t:title, b:details, m: c0.m || 'щойно'};
+          bucket(kind === 'ideas' ? st.ideas : st.notes, st.p, mi).push(moved);
+          if (v.m !== 'all') st.view = {kind:kind, m:mi}; else st.view = {kind:kind, m:'all'};
+        }
+        save(); closeSheet(); render();
+        toast(sameBucket ? 'Зміни збережено' : 'Збережено · ' + (kind === 'ideas' ? 'ідея' : 'нотатка') + ' · ' + modName(mi));
+        return;
+      }
+      if (kind === 'ideas') bucket(st.ideas, st.p, mi).push({t:title, s:'нова', b:details});
+      else bucket(st.notes, st.p, mi).push({t:title, b:details, m:'щойно'});
       st.view = {kind:kind, m: v.m === 'all' ? 'all' : mi};
       save(); closeSheet(); render();
       setTimeout(function(){ var c = $('canvas'); c.scrollTo({top: isPhone() && kind === 'notes' ? 0 : c.scrollHeight, behavior:'smooth'}); }, 60);
       toast((kind === 'ideas' ? 'Ідею' : 'Нотатку') + ' додано · ' + modName(mi));
     }
     ok.onclick = submit;
-    t.onkeydown = function(e){ if (e.key === 'Enter') submit(); };
+    t.onkeydown = function(ev){ if (ev.key === 'Enter') submit(); };
     body.appendChild(t); body.appendChild(el('div', {'style':'height:8px'})); body.appendChild(d);
     body.appendChild(s1); body.appendChild(s2); body.appendChild(ok);
-    openSheet('Додати', body);
+    if (edit) {
+      var back = el('button', {'class':'ghost','style':'width:100%;margin-top:8px'}, 'Скасувати');
+      back.onclick = function(){ openCard(edit.kind, edit.e); };
+      body.appendChild(back);
+    }
+    openSheet(edit ? (edit.kind === 'ideas' ? 'Редагувати ідею' : 'Редагувати нотатку') : 'Додати', body);
   }
+  function openAdd(){ openForm(null); }
 
   function openCard(kind, e){
     var c = e.c, body = el('div');
@@ -623,12 +652,15 @@ a{color:var(--accent)}
     }
     var acts = el('div', {'class':'shsec'}, '<span class="label">Дії</span>');
     var row = el('div', {'class':'opts'});
+    var edt = el('button', {'class':'ghost','style':'font-weight:600;border-color:var(--ink)'}, '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="vertical-align:-2px;margin-right:6px"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></svg>Редагувати');
+    edt.onclick = function(){ openForm({kind:kind, e:e}); };
+    row.appendChild(edt);
     var ask = el('button', {'class':'ghost'}, 'Спитати агента');
     ask.onclick = function(){ closeSheet(); openAgent(kind === 'ideas' ? AGENT_BY_STATUS[c.s || 'нова'] : 'Ця нотатка може стати ідеєю: що з неї варто перевірити?', c.t); };
     row.appendChild(ask);
     if (kind === 'notes') {
       var toIdea = el('button', {'class':'ghost'}, 'Зробити ідеєю');
-      toIdea.onclick = function(){ remove(st.notes, e); bucket(st.ideas, st.p, e.mi).push({t:c.t, s:'нова', b:''}); st.view = {kind:'ideas', m:e.mi === 'g' ? 'all' : e.mi}; save(); closeSheet(); render(); toast('Нотатку перетворено на ідею'); };
+      toIdea.onclick = function(){ remove(st.notes, e); bucket(st.ideas, st.p, e.mi).push({t:c.t, s:'нова', b:c.b || ''}); st.view = {kind:'ideas', m:e.mi === 'g' ? 'all' : e.mi}; save(); closeSheet(); render(); toast('Нотатку перетворено на ідею'); };
       row.appendChild(toIdea);
     }
     var del = el('button', {'class':'ghost danger'}, 'Видалити');
