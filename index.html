@@ -817,6 +817,16 @@ a{color:var(--accent)}
     function card(e){
       var b = el('button', {'class':'card mcard'}, cardHTML(v, e, true));
       b.onclick = function(){ openCard(v.kind, e); };
+      if (base(v.kind) === 'instr' && e.c.notion) {
+        // instruction: tap opens Notion app; status and edit live behind «⋯»
+        b.onclick = function(){ openNotion(e.c.notion) || openInstr(v.kind, e); };
+        b.style.paddingRight = '56px';
+        var w = el('div', {'style':'position:relative'});
+        var more = el('button', {'class':'ghost','aria-label':'Статус і деталі','style':'position:absolute;top:8px;right:8px;width:40px;height:40px;padding:0;display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1'}, '⋯');
+        more.onclick = function(){ openCard(v.kind, e, true); };
+        w.appendChild(b); w.appendChild(more); list.appendChild(w);
+        return;
+      }
       list.appendChild(b);
     }
     if (base(v.kind) === 'notes') { entries.slice().reverse().forEach(card); return; }
@@ -828,7 +838,7 @@ a{color:var(--accent)}
       list.appendChild(el('div', {'class':'grp'}, '<i style="background:'+T[s].dot+'"></i>'+T[s].group+' <span class="n">'+g.length+'</span>'));
       g.forEach(card);
     });
-    list.appendChild(el('div', {'class':'hint'}, 'Натисніть на картку, щоб змінити статус'));
+    list.appendChild(el('div', {'class':'hint'}, base(v.kind) === 'instr' ? 'Картка відкриває інструкцію в додатку Notion · «⋯» — статус і редагування' : 'Натисніть на картку, щоб змінити статус'));
   }
 
   var KICON = {
@@ -1179,11 +1189,36 @@ a{color:var(--accent)}
     if (focusKey && svcIn[focusKey]) setTimeout(function(){ svcIn[focusKey].scrollIntoView({block:'center'}); svcIn[focusKey].focus(); }, 120);
   }
   function openAdd(){ openForm(null); }
+  // phone: open Notion links in the Notion app (notion:// deep link), browser as a fallback
+  function notionAppUrl(u){
+    try { var x = new URL(u); } catch(err){ return null; }
+    var m = x.pathname.replace(/-/g, '').match(/[0-9a-f]{32}(?=[^0-9a-f]*$)/i);
+    if (m) return 'notion://www.notion.so/' + m[0];
+    return /(^|\.)notion\.so$/.test(x.hostname) ? 'notion://' + x.hostname + x.pathname : null;
+  }
+  function openNotion(url){
+    if (!isPhone()) return false;
+    var app = notionAppUrl(url); if (!app) return false;
+    var left = false;
+    function onHide(){ if (document.hidden) left = true; }
+    document.addEventListener('visibilitychange', onHide);
+    setTimeout(function(){
+      document.removeEventListener('visibilitychange', onHide);
+      if (left || document.hidden) return;
+      var body = el('div');
+      body.appendChild(el('p', {'style':'margin:0 0 12px;font-size:15px;line-height:1.5;color:var(--muted)'}, 'Додаток Notion не відкрився — можливо, його не встановлено. Можна відкрити сторінку в браузері.'));
+      body.appendChild(el('a', {'class':'primary','href':url,'target':'_blank','rel':'noopener noreferrer nofollow','style':'display:flex;align-items:center;justify-content:center;text-decoration:none'}, 'Відкрити в браузері'));
+      openSheet('Notion', body);
+    }, 1600);
+    location.href = app;
+    return true;
+  }
+  function notionLink(a, url){ a.addEventListener('click', function(ev){ if (openNotion(url)) ev.preventDefault(); }); return a; }
   // instruction card → popup with its Notion page
   function openInstr(kind, e){
     var c = e.c, body = el('div');
     var tools = el('div', {'class':'ntools'});
-    if (c.notion) tools.appendChild(el('a', {'href':c.notion,'target':'_blank','rel':'noopener noreferrer nofollow'}, DOC_ICON.replace('16" height="16','14" height="14') + '<span>Відкрити в Notion</span>'));
+    if (c.notion) tools.appendChild(notionLink(el('a', {'href':c.notion,'target':'_blank','rel':'noopener noreferrer nofollow'}, DOC_ICON.replace('16" height="16','14" height="14') + '<span>Відкрити в Notion</span>'), c.notion));
     var det = el('button', {}, '<span>Статус і деталі</span>'); det.onclick = function(){ openCard(kind, e, true); };
     var ed = el('button', {}, '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg><span>Редагувати</span>');
     ed.onclick = function(){ openForm({kind:kind, e:e}, c.notion ? null : 'notion'); };
@@ -1210,6 +1245,7 @@ a{color:var(--accent)}
       var url = c[key];
       if (url) {
         var a = el('a', {'class':'svc','href':url,'target':'_blank','rel':'noopener noreferrer nofollow'}, SVC[key].icon + SVC[key].label);
+        if (key === 'notion') notionLink(a, url);
         svcs.appendChild(a);
       } else {
         var b = el('button', {'class':'svc empty','title':'Додати: ' + SVC[key].hint}, '+ ' + SVC[key].label);
