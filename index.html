@@ -356,7 +356,7 @@ a{color:var(--accent)}
   <div id="shBody"></div>
 </div>
 
-<div class="ver mono">ескіз v2 · демо-дані · зміни зберігаються лише у вашому браузері</div>
+<div class="ver mono">ескіз v2 · 18.10 19:15 · демо-дані · зміни зберігаються лише у вашому браузері</div>
 
 <script>
 (function(){
@@ -656,6 +656,7 @@ a{color:var(--accent)}
     var found = String(raw || '').match(/https?:\/\/[^\s<>"']+/i);
     var u = normUrl(found ? found[0] : raw); if (!u) return u;
     var h = new URL(u).hostname.toLowerCase();
+    if (key === 'notion') return /(^|\.)notion\.[a-z]{2,}$/.test(h) || /(^|\.)notion\.app\.link$/.test(h) ? u : null; // any Notion domain: notion.so / .site / .com …
     return SVC[key].hosts.some(function(d){ return h === d || h.slice(-(d.length + 1)) === '.' + d; }) ? u : null;
   }
   function svcPills(c){
@@ -1148,7 +1149,7 @@ a{color:var(--accent)}
         if (u === null) { svcIn[key].classList.add('bad'); badSvc = badSvc || key; }
         svc[key] = u || '';
       });
-      if (badSvc) { toast(badSvc === 'chat' ? 'Поле «Чат»: потрібне посилання claude.ai' : 'Поле «Notion»: потрібне посилання notion.so або notion.site'); svcIn[badSvc].focus(); return; }
+      if (badSvc) { toast(badSvc === 'chat' ? 'Поле «Чат»: потрібне посилання claude.ai' : 'Поле «Notion»: потрібне посилання на сторінку Notion (notion.so, notion.com, notion.site). Зараз: ' + (function(v){ var f = String(v).match(/https?:\/\/[^\s\/?#]+/i); return f ? f[0].replace(/^https?:\/\//, '') : (String(v).trim().slice(0, 30) || 'порожньо'); })(svcIn.notion.value)); svcIn[badSvc].focus(); return; }
       if (edit) {
         var sameBucket = kind === edit.kind && mi === edit.e.mi;
         if (sameBucket) { c0.t = title; c0.b = details; c0.l = links; c0.chat = svc.chat; c0.notion = svc.notion; if (isMod(kind)) c0.v = vin.value.trim(); }
@@ -1194,7 +1195,7 @@ a{color:var(--accent)}
   // phone: open Notion links in the Notion app (notion:// deep link), browser as a fallback
   function notionAppUrl(u){
     try { var x = new URL(u); } catch(err){ return null; }
-    var m = x.pathname.replace(/-/g, '').match(/[0-9a-f]{32}(?=[^0-9a-f]*$)/i);
+    var m = x.pathname.replace(/-/g, '').match(/[0-9a-f]{32}(?=[^0-9a-f]*$)/i) || (x.search.replace(/-/g, '').match(/[0-9a-f]{32}/i));
     var path = m ? 'www.notion.so/' + m[0] : (/(^|\.)notion\.(so|com)$/.test(x.hostname) ? x.hostname + x.pathname : null);
     if (!path) return null;
     // Android: intent link opens the Notion app (package notion.id), else Chrome falls back to the web page
