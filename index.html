@@ -863,31 +863,21 @@ a{color:var(--accent)}
     var DESC = {ideas:'Гіпотези зі статусами — від «нова» до «спрацювало»', notes:'Короткі записи, посилання, Чат і Notion', tasks:'Що зробити, хто і коли'};
     function row(icon, name, desc, btnText, cls, fn, added){
       var r = el('div', {'class':'rowbtn','style':'cursor:default' + (added ? ';background:var(--side)' : '')}, icon + '<span style="flex:1;min-width:0"><b style="font-weight:600">' + esc(name) + '</b><small style="display:block;color:var(--faint);font-size:13px;margin-top:2px">' + esc(desc) + '</small></span>');
-      var b = el('button', {'class':'ghost','style':'flex:none;font-weight:600;' + (added ? 'color:var(--muted)' : 'color:var(--accent)')}, btnText);
+      var b = el('button', {'class':'ghost','style':'flex:none;display:inline-flex;align-items:center;gap:6px;font-weight:600;' + (added ? 'color:var(--muted)' : 'color:var(--accent)')}, btnText);
       b.onclick = function(){ fn(b); };
       r.appendChild(b); body.appendChild(r);
     }
-    body.appendChild(el('p', {'style':'margin:0 0 6px;font-size:14px;line-height:1.5;color:var(--muted)'}, 'Загальні модулі — спільні для всіх плагінів проєкту. Модулі окремого плагіна додаються на його вкладці.'));
-    body.appendChild(el('span', {'class':'label','style':'margin:2px 4px'}, 'Можна додати'));
-    row(KICON.web, 'Веб-сторінка', 'Одна сторінка на полі дошки, видно в усіх плагінах. Можна додати кілька', 'Додати', '', function(){ openPageForm(null, 'g'); });
-    KINDS.filter(function(k){ return on.indexOf(k) < 0; }).forEach(function(k){
-      row(KICON[k], KNAME[k], DESC[k], 'Додати', '', function(){
+    var DONE = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg> Додано';
+    KINDS.forEach(function(k){
+      var has = on.indexOf(k) >= 0;
+      row(KICON[k], KNAME[k], DESC[k], has ? DONE : 'Додати', '', function(){
+        if (has) { closeSheet(); setView(k, V().m); return; }
         on.push(k); on.sort(function(a, b){ return KINDS.indexOf(a) - KINDS.indexOf(b); });
         st.view = {kind:k, m:V().m}; save(); closeSheet(); render(); toast('Модуль «' + KNAME[k] + '» додано');
-      });
+      }, has);
     });
-    var pages = pagesOf('g');
-    body.appendChild(el('span', {'class':'label','style':'margin:14px 4px 2px'}, 'Уже додано · ' + (on.length + pages.length)));
-    on.forEach(function(k){
-      row(KICON[k], KNAME[k], DESC[k], 'Прибрати', '', function(b){
-        if (on.length + pages.length <= 1) { toast('Має лишитися хоча б один загальний модуль'); return; }
-        if (!b.dataset.armed) { b.dataset.armed = '1'; b.textContent = 'Точно?'; b.classList.add('danger'); return; }
-        st.gen[st.p] = on.filter(function(x){ return x !== k; });
-        save(); render(); openGenCatalog(); toast('Модуль «' + KNAME[k] + '» прибрано. Записи збережено — повернуться, якщо додати знову');
-      }, true);
-    });
-    pages.forEach(function(pg){ row(KICON.web, pg.t, host(pg.url), 'Налаштувати', '', function(){ openPageForm(pg, 'g'); }, true); });
-    openSheet('Загальні модулі', body);
+    row(KICON.web, 'Веб-сторінка', 'Одна сторінка на полі дошки. Можна додати кілька', 'Додати', '', function(){ openPageForm(null, 'g'); });
+    openSheet('Додати модуль', body);
   }
   function openModCatalog(pl){
     var body = el('div', {'class':'rows'});
