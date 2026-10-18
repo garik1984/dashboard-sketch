@@ -395,7 +395,35 @@ a{color:var(--accent)}
        {id:'price', name:'Ціни', desc:'Тарифи і тести цін'},
        {id:'cash', name:'Прогноз', desc:'Грошовий потік на 6 місяців'}]
   };
-  function modDef(kind){ var id = kind.slice(4), f = null; Object.keys(PMODS).forEach(function(k){ PMODS[k].forEach(function(d){ if (d.id === id) f = {d:d, plugin:+k}; }); }); return f; }
+  // extra modules available to add (catalog = installed-by-default + extras)
+  var PMODS_EXTRA = {
+    0:[{id:'pos', name:'Позиціонування', desc:'Для кого ми і чим відрізняємось'},
+       {id:'offer', name:'Офер і ціна', desc:'Що пропонуємо і за скільки'},
+       {id:'email', name:'Email-розсилки', desc:'Ланцюжки листів і їх результати'},
+       {id:'seo', name:'SEO і ASO', desc:'Ключові слова, позиції в пошуку і сторах'},
+       {id:'influ', name:'Інфлюенсери', desc:'Блогери, умови, результати співпраці'}],
+    1:[{id:'scen', name:'Сценарії', desc:'Що робимо, якщо події підуть інакше'},
+       {id:'okr', name:'Цілі кварталу', desc:'3 цілі з вимірюваними результатами'},
+       {id:'mmap', name:'Карта ринку', desc:'Сегменти, гравці, вільні ніші'}],
+    2:[{id:'rep', name:'Звіти', desc:'Щотижневий зріз ключових цифр'},
+       {id:'attr', name:'Атрибуція', desc:'Звідки приходять платні користувачі'},
+       {id:'alert', name:'Сповіщення', desc:'Коли метрика виходить за поріг'}],
+    3:[{id:'rel', name:'Релізи', desc:'Що вийшло і як це вплинуло'},
+       {id:'ux', name:'UX-дослідження', desc:'Тести інтерфейсу і висновки'},
+       {id:'bugs', name:'Помилки', desc:'Що зламалось і пріоритет виправлення'}],
+    4:[{id:'inv', name:'Інвестори', desc:'Контакти, статус розмов, умови'},
+       {id:'subs', name:'Підписки сервісів', desc:'На що щомісяця йдуть гроші'},
+       {id:'scen4', name:'Фінансові сценарії', desc:'Песимістичний, базовий, оптимістичний'}]
+  };
+  function catalog(pl){ return (PMODS[pl] || []).concat(PMODS_EXTRA[pl] || []); }
+  function modDef(kind){ var id = kind.slice(4), f = null; Object.keys(PMODS).forEach(function(k){ catalog(+k).forEach(function(d){ if (d.id === id) f = {d:d, plugin:+k}; }); }); return f; }
+  // installed modules per project & plugin: st.inst[p][plugin] = [ids]
+  function installed(pl){
+    st.inst = st.inst || {}; st.inst[st.p] = st.inst[st.p] || {};
+    if (!st.inst[st.p][pl]) st.inst[st.p][pl] = (PMODS[pl] || []).map(function(d){ return d.id; });
+    var cat = catalog(pl);
+    return st.inst[st.p][pl].map(function(id){ return cat.filter(function(d){ return d.id === id; })[0]; }).filter(Boolean);
+  }
   function isMod(kind){ return kind && kind.indexOf('mod:') === 0; }
   // seeds: md[moduleId][project][plugin] = [{t, b, v}]
   function seedMods(){
@@ -522,7 +550,7 @@ a{color:var(--accent)}
   function V(){
     var v = st.view || {kind:'ideas', m:'all'};
     if (v.m !== 'all' && st.mods[st.p].indexOf(v.m) < 0) v = st.view = {kind:isMod(v.kind) ? 'ideas' : (v.kind || 'ideas'), m:'all'};
-    if (isMod(v.kind)) { var f = modDef(v.kind); if (!f || v.m === 'all' || f.plugin !== v.m) v = st.view = {kind:'ideas', m:v.m}; }
+    if (isMod(v.kind)) { var f = modDef(v.kind); if (!f || v.m === 'all' || f.plugin !== v.m || !installed(v.m).some(function(d){ return 'mod:' + d.id === v.kind; })) v = st.view = {kind:'ideas', m:v.m}; }
     return v;
   }
   function setView(kind, m){ st.view = {kind:kind, m:m}; save(); render(); }
@@ -639,15 +667,18 @@ a{color:var(--accent)}
       c.onclick = function(){ setView(k, v.m); };
       mo.appendChild(c);
     });
-    if (v.m !== 'all' && PMODS[v.m]) {
+    if (v.m !== 'all') {
       mo.appendChild(el('span', {'class':'sep','aria-hidden':'true'}));
-      PMODS[v.m].forEach(function(d){
+      installed(v.m).forEach(function(d){
         var k = 'mod:' + d.id, on = v.kind === k;
         var c = el('button', {'class':'chip','aria-pressed': String(on)}, '<i style="background:'+M[v.m].color+'"></i>'+esc(d.name)+' <span class="n">'+bucket(storeOf(k), st.p, v.m).length+'</span>');
         if (on) { c.style.borderColor = M[v.m].color; c.style.background = M[v.m].bg; }
         c.onclick = function(){ setView(k, v.m); };
         mo.appendChild(c);
       });
+      var addM = el('button', {'class':'chip add','aria-label':'Додати модуль'}, '+ модуль');
+      addM.onclick = function(){ openModCatalog(v.m); };
+      mo.appendChild(addM);
     }
     [mc, mo].forEach(function(row){ var pr = row.querySelector('[aria-pressed="true"]'); if (pr && phone) pr.scrollIntoView({inline:'nearest', block:'nearest'}); });
 
@@ -710,6 +741,33 @@ a{color:var(--accent)}
     mod:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>'
   };
   var KNAME = {ideas:'Ідеї', notes:'Нотатки', tasks:'Завдання'};
+  function openModCatalog(pl){
+    var body = el('div', {'class':'rows'});
+    var ids = installed(pl).map(function(d){ return d.id; });
+    var avail = catalog(pl).filter(function(d){ return ids.indexOf(d.id) < 0; });
+    body.appendChild(el('span', {'class':'label','style':'margin:2px 4px'}, avail.length ? 'Можна додати · ' + avail.length : 'Усі модулі вже додано'));
+    avail.forEach(function(d){
+      var r = el('div', {'class':'rowbtn','style':'cursor:default'}, KICON.mod + '<span style="flex:1;min-width:0"><b style="font-weight:600">' + esc(d.name) + '</b><small style="display:block;color:var(--faint);font-size:13px;margin-top:2px">' + esc(d.desc) + '</small></span>');
+      var b = el('button', {'class':'ghost','style':'flex:none;font-weight:600;color:var(--accent)'}, 'Додати');
+      b.onclick = function(){ st.inst[st.p][pl].push(d.id); st.view = {kind:'mod:' + d.id, m:pl}; save(); closeSheet(); render(); toast('Модуль «' + d.name + '» додано в ' + M[pl].name); };
+      r.appendChild(b); body.appendChild(r);
+    });
+    var inst = installed(pl);
+    if (inst.length) {
+      body.appendChild(el('span', {'class':'label','style':'margin:14px 4px 2px'}, 'Уже в плагіні · ' + inst.length));
+      inst.forEach(function(d){
+        var r = el('div', {'class':'rowbtn','style':'cursor:default;background:var(--side)'}, KICON.mod + '<span style="flex:1;min-width:0">' + esc(d.name) + '<small style="display:block;color:var(--faint);font-size:13px;margin-top:2px">' + esc(d.desc) + '</small></span>');
+        var b = el('button', {'class':'ghost','style':'flex:none;color:var(--muted)'}, 'Прибрати');
+        b.onclick = function(){
+          if (!b.dataset.armed) { b.dataset.armed = '1'; b.textContent = 'Точно?'; b.classList.add('danger'); return; }
+          st.inst[st.p][pl] = st.inst[st.p][pl].filter(function(x){ return x !== d.id; });
+          save(); render(); openModCatalog(pl); toast('Модуль «' + d.name + '» прибрано. Записи збережено — повернуться, якщо додати знову');
+        };
+        r.appendChild(b); body.appendChild(r);
+      });
+    }
+    openSheet('Модулі · ' + M[pl].name, body);
+  }
   function renderSide(v){
     var cr = $('commonRows'); cr.innerHTML = '';
     KINDS.forEach(function(k){
@@ -723,19 +781,22 @@ a{color:var(--accent)}
       lab.innerHTML = 'Модулі плагінів';
       pr.appendChild(el('div', {'class':'shint'}, 'Оберіть плагін — відкриються його модулі'));
       st.mods[st.p].forEach(function(mi){
-        var b = el('button', {'class':'srow'}, '<i style="width:8px;height:8px;border-radius:2px;display:block;flex:none;background:'+M[mi].color+'"></i><span>' + M[mi].name + '</span><span class="n">' + (PMODS[mi] ? PMODS[mi].length : 0) + '</span>');
+        var b = el('button', {'class':'srow'}, '<i style="width:8px;height:8px;border-radius:2px;display:block;flex:none;background:'+M[mi].color+'"></i><span>' + M[mi].name + '</span><span class="n">' + installed(mi).length + '</span>');
         b.onclick = function(){ setView(isMod(v.kind) ? 'ideas' : v.kind, mi); };
         pr.appendChild(b);
       });
       return;
     }
     lab.innerHTML = '<i style="background:'+M[v.m].color+'"></i>Модулі · ' + esc(M[v.m].name);
-    (PMODS[v.m] || []).forEach(function(d){
+    installed(v.m).forEach(function(d){
       var k = 'mod:' + d.id;
       var b = el('button', {'class':'srow','aria-pressed': String(v.kind === k)}, KICON.mod + '<span class="txt">' + esc(d.name) + '<small>' + esc(d.desc) + '</small></span><span class="n">' + bucket(storeOf(k), st.p, v.m).length + '</span>');
       b.onclick = function(){ setView(k, v.m); };
       pr.appendChild(b);
     });
+    var add = el('button', {'class':'srow','style':'border:1px dashed var(--line);color:var(--accent);font-weight:600;margin-top:4px'}, '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true" style="color:var(--accent)"><path d="M12 5v14M5 12h14"/></svg><span>Додати модуль</span>');
+    add.onclick = function(){ openModCatalog(v.m); };
+    pr.appendChild(add);
   }
 
   function renderSearch(q, r){
