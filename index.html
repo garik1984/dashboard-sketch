@@ -559,8 +559,9 @@ a{color:var(--accent)}
               {id:'w2', plugin:3, t:'Вікіпедія · Сон', url:'https://uk.wikipedia.org/wiki/%D0%A1%D0%BE%D0%BD'}]];
     delete st.web; delete st.webSel;
   }
-  // pages belong to one plugin only — migrate old project-wide pages to the first plugin
-  (st.wp || []).forEach(function(list, pi){ (list || []).forEach(function(x){ if (x.plugin === 'g') x.plugin = (st.mods[pi] || [0])[0]; }); });
+  // general modules switched on per project (ideas / notes / tasks); general web pages = st.wp with plugin 'g'
+  if (!st.gen) st.gen = {};
+  function genOn(){ return st.gen[st.p] || (st.gen[st.p] = KINDS.slice()); }
   function pagesOf(pl){ st.wp[st.p] = st.wp[st.p] || []; return st.wp[st.p].filter(function(x){ return x.plugin === pl; }); }
   function pageById(id){ return (st.wp[st.p] || []).filter(function(x){ return x.id === id; })[0]; }
   function isPage(kind){ return kind && kind.indexOf('page:') === 0; }
@@ -593,9 +594,14 @@ a{color:var(--accent)}
     var v = st.view || {kind:'ideas', m:'all'};
     if (v.m !== 'all' && st.mods[st.p].indexOf(v.m) < 0) v = st.view = {kind:isMod(v.kind) || isPage(v.kind) ? 'ideas' : (v.kind || 'ideas'), m:'all'};
     if (isMod(v.kind)) { var f = modDef(v.kind); if (!f || v.m === 'all' || f.plugin !== v.m || !installed(v.m).some(function(d){ return 'mod:' + d.id === v.kind; })) v = st.view = {kind:'ideas', m:v.m}; }
-    if (isPage(v.kind)) { var pg = pageById(v.kind.slice(5)); if (!pg || pg.plugin !== v.m) v = st.view = {kind:'ideas', m:v.m}; }
+    if (isPage(v.kind)) { var pg = pageById(v.kind.slice(5)); if (!pg || (pg.plugin !== 'g' && pg.plugin !== v.m)) v = st.view = {kind:'ideas', m:v.m}; }
+    if (KINDS.indexOf(v.kind) >= 0 && genOn().indexOf(v.kind) < 0) {
+      var g0 = pagesOf('g')[0];
+      v = st.view = {kind: genOn()[0] || (g0 ? 'page:' + g0.id : v.kind), m:v.m};
+    }
     return v;
   }
+  function leaveKind(k){ if (isMod(k)) return 'ideas'; if (isPage(k)) { var pg = pageById(k.slice(5)); return pg && pg.plugin === 'g' ? k : 'ideas'; } return k; }
   function setView(kind, m){ st.view = {kind:kind, m:m}; save(); render(); }
   function modName(mi){ return mi === 'g' ? 'Загальна' : M[mi].name; }
   function plugHTML(mi){ return mi === 'g' ? '<span class="meta mono">Загальна</span>' : '<span class="meta mono plug"><i style="background:'+M[mi].color+'"></i>'+esc(M[mi].name)+'</span>'; }
@@ -676,26 +682,26 @@ a{color:var(--accent)}
     var mm = $('modules'); mm.innerHTML = '';
     var allTab = el('button', {'class':'mtab','aria-current': String(v.m === 'all')}, 'Усі');
     if (v.m === 'all') { allTab.style.borderColor = 'var(--ink)'; allTab.style.background = 'var(--line2)'; }
-    allTab.onclick = function(){ setView(isMod(v.kind) || isPage(v.kind) ? 'ideas' : v.kind, 'all'); };
+    allTab.onclick = function(){ setView(leaveKind(v.kind), 'all'); };
     mm.appendChild(allTab);
     active.forEach(function(mi){
       var m = M[mi], on = v.m === mi;
       var b = el('button', {'class':'mtab','aria-current': String(on)}, '<i style="background:'+m.color+'"></i>'+m.name);
       if (on) { b.style.borderColor = m.color; b.style.background = m.bg; }
-      b.onclick = function(){ on ? setView(isMod(v.kind) || isPage(v.kind) ? 'ideas' : v.kind, 'all') : setView(isMod(v.kind) || isPage(v.kind) ? 'ideas' : v.kind, mi); };
+      b.onclick = function(){ on ? setView(leaveKind(v.kind), 'all') : setView(leaveKind(v.kind), mi); };
       mm.appendChild(b);
     });
 
     // phone: row 1 = plugins, row 2 = modules (common + plugin's own)
     var mc = $('mchips'); mc.innerHTML = '';
     var allChip = el('button', {'class':'chip','aria-pressed': String(v.m === 'all')}, 'Усі плагіни');
-    allChip.onclick = function(){ setView(isMod(v.kind) || isPage(v.kind) ? 'ideas' : v.kind, 'all'); };
+    allChip.onclick = function(){ setView(leaveKind(v.kind), 'all'); };
     mc.appendChild(allChip);
     active.forEach(function(mi){
       var on = v.m === mi;
       var c = el('button', {'class':'chip','aria-pressed': String(on)}, '<i style="background:'+M[mi].color+'"></i>'+M[mi].name);
       if (on) { c.style.borderColor = M[mi].color; c.style.background = M[mi].bg; }
-      c.onclick = function(){ setView(isMod(v.kind) || isPage(v.kind) ? 'ideas' : v.kind, on ? 'all' : mi); };
+      c.onclick = function(){ setView(leaveKind(v.kind), on ? 'all' : mi); };
       mc.appendChild(c);
     });
     var addChip = el('button', {'class':'chip add','aria-label':'Додати плагін'}, '+');
@@ -703,7 +709,7 @@ a{color:var(--accent)}
     mc.appendChild(addChip);
     var mo = $('mmods'); mo.innerHTML = '';
     function cnt(kind){ return v.m === 'all' ? total(storeOf(kind), st.p) : bucket(storeOf(kind), st.p, v.m).length; }
-    KINDS.forEach(function(k){
+    genOn().forEach(function(k){
       var c = el('button', {'class':'chip','aria-pressed': String(v.kind === k)}, KNAME[k]);
       c.innerHTML += ' <span class="n">' + cnt(k) + '</span>';
       if (v.kind === k) { c.style.borderColor = 'var(--ink)'; }
@@ -717,7 +723,8 @@ a{color:var(--accent)}
       c.onclick = function(){ setView(k, v.m); };
       mo.appendChild(c);
     }
-    if (v.m === 'all') { var addA = el('button', {'class':'chip add','aria-label':'Додати модуль'}, '+ модуль'); addA.onclick = openModPicker; mo.appendChild(addA); }
+    pagesOf('g').forEach(pageChip);
+    if (v.m === 'all') { var addA = el('button', {'class':'chip add','aria-label':'Додати загальний модуль'}, '+ модуль'); addA.onclick = openGenCatalog; mo.appendChild(addA); }
     if (v.m !== 'all') {
       mo.appendChild(el('span', {'class':'sep','aria-hidden':'true'}));
       pagesOf(v.m).forEach(pageChip);
@@ -739,7 +746,7 @@ a{color:var(--accent)}
     $('viewreset').hidden = v.kind === 'ideas' && v.m === 'all';
     if (isPage(v.kind)) {
       var pg = pageById(v.kind.slice(5));
-      $('btitle').textContent = M[pg.plugin].name + ' · ' + pg.t;
+      $('btitle').textContent = modName(pg.plugin) + ' · ' + pg.t;
       renderPage(pg);
     } else {
       var entries = entriesFor(v), L = KL(v.kind);
@@ -822,7 +829,7 @@ a{color:var(--accent)}
   // create / edit a web-page module; pl = plugin index or 'g' (project-wide)
   function openPageForm(pg, pl){
     var body = el('div');
-    body.appendChild(el('p', {'style':'margin:0 0 12px;font-size:14px;line-height:1.5;color:var(--muted)'}, 'Модуль показує одну сторінку на полі дошки і належить лише цьому плагіну. Потрібна ще одна сторінка — додайте ще один модуль.'));
+    body.appendChild(el('p', {'style':'margin:0 0 12px;font-size:14px;line-height:1.5;color:var(--muted)'}, (pl === 'g' ? 'Загальний модуль: одна сторінка на полі дошки, видно в усіх плагінах проєкту.' : 'Модуль показує одну сторінку на полі дошки і належить лише цьому плагіну.') + ' Потрібна ще одна сторінка — додайте ще один модуль.'));
     var t = el('input', {'class':'inp','placeholder':'Назва модуля, напр. «Дашборд реклами»','aria-label':'Назва модуля','maxlength':'40'});
     var u = el('input', {'class':'inp','type':'url','inputmode':'url','autocapitalize':'off','autocorrect':'off','spellcheck':'false','placeholder':'https://…','aria-label':'Адреса сторінки'});
     if (pg) { t.value = pg.t; u.value = pg.url; }
@@ -835,7 +842,7 @@ a{color:var(--accent)}
       var isNew = !pg;
       if (pg) { pg.t = title; pg.url = url; }
       else { pg = {id:'w' + Date.now().toString(36), plugin:pl, t:title, url:url}; st.wp[st.p].push(pg); }
-      st.view = {kind:'page:' + pg.id, m: pl};
+      st.view = {kind:'page:' + pg.id, m: pl === 'g' ? V().m : pl};
       save(); closeSheet(); render(); toast(isNew ? 'Модуль «' + title + '» додано' : 'Модуль «' + title + '» збережено');
     };
     body.appendChild(t); body.appendChild(el('div', {'style':'height:8px'})); body.appendChild(u); body.appendChild(ok);
@@ -848,19 +855,39 @@ a{color:var(--accent)}
       };
       body.appendChild(del);
     }
-    openSheet(pg ? 'Веб-сторінка · налаштування' : 'Новий модуль · Веб-сторінка · ' + M[pl].name, body);
+    openSheet(pg ? 'Веб-сторінка · налаштування' : 'Новий модуль · Веб-сторінка · ' + modName(pl), body);
   }
-  // «Усі плагіни»: modules belong to a plugin, so pick the plugin first
-  function openModPicker(){
-    var body = el('div', {'class':'rows'});
-    body.appendChild(el('p', {'style':'margin:0 0 6px;font-size:14px;line-height:1.5;color:var(--muted)'}, 'Модуль належить плагіну. Оберіть, у який плагін його додати:'));
-    st.mods[st.p].forEach(function(mi){
-      var avail = catalog(mi).length - installed(mi).length;
-      var b = el('button', {'class':'rowbtn'}, '<i style="width:10px;height:10px;border-radius:3px;display:block;flex:none;background:' + M[mi].color + '"></i><span style="flex:1;min-width:0">' + M[mi].name + '<small style="display:block;color:var(--faint);font-size:13px;margin-top:2px">' + (installed(mi).length + pagesOf(mi).length) + ' модулів · ще ' + avail + ' в каталозі + веб-сторінка</small></span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="color:var(--faint);flex:none"><path d="M9 6l6 6-6 6"/></svg>');
-      b.onclick = function(){ openModCatalog(mi); };
-      body.appendChild(b);
+  // «Усі плагіни»: only general modules — ideas / notes / tasks / web page
+  function openGenCatalog(){
+    var body = el('div', {'class':'rows'}), on = genOn();
+    var DESC = {ideas:'Гіпотези зі статусами — від «нова» до «спрацювало»', notes:'Короткі записи, посилання, Чат і Notion', tasks:'Що зробити, хто і коли'};
+    function row(icon, name, desc, btnText, cls, fn, added){
+      var r = el('div', {'class':'rowbtn','style':'cursor:default' + (added ? ';background:var(--side)' : '')}, icon + '<span style="flex:1;min-width:0"><b style="font-weight:600">' + esc(name) + '</b><small style="display:block;color:var(--faint);font-size:13px;margin-top:2px">' + esc(desc) + '</small></span>');
+      var b = el('button', {'class':'ghost','style':'flex:none;font-weight:600;' + (added ? 'color:var(--muted)' : 'color:var(--accent)')}, btnText);
+      b.onclick = function(){ fn(b); };
+      r.appendChild(b); body.appendChild(r);
+    }
+    body.appendChild(el('p', {'style':'margin:0 0 6px;font-size:14px;line-height:1.5;color:var(--muted)'}, 'Загальні модулі — спільні для всіх плагінів проєкту. Модулі окремого плагіна додаються на його вкладці.'));
+    body.appendChild(el('span', {'class':'label','style':'margin:2px 4px'}, 'Можна додати'));
+    row(KICON.web, 'Веб-сторінка', 'Одна сторінка на полі дошки, видно в усіх плагінах. Можна додати кілька', 'Додати', '', function(){ openPageForm(null, 'g'); });
+    KINDS.filter(function(k){ return on.indexOf(k) < 0; }).forEach(function(k){
+      row(KICON[k], KNAME[k], DESC[k], 'Додати', '', function(){
+        on.push(k); on.sort(function(a, b){ return KINDS.indexOf(a) - KINDS.indexOf(b); });
+        st.view = {kind:k, m:V().m}; save(); closeSheet(); render(); toast('Модуль «' + KNAME[k] + '» додано');
+      });
     });
-    openSheet('Додати модуль', body);
+    var pages = pagesOf('g');
+    body.appendChild(el('span', {'class':'label','style':'margin:14px 4px 2px'}, 'Уже додано · ' + (on.length + pages.length)));
+    on.forEach(function(k){
+      row(KICON[k], KNAME[k], DESC[k], 'Прибрати', '', function(b){
+        if (on.length + pages.length <= 1) { toast('Має лишитися хоча б один загальний модуль'); return; }
+        if (!b.dataset.armed) { b.dataset.armed = '1'; b.textContent = 'Точно?'; b.classList.add('danger'); return; }
+        st.gen[st.p] = on.filter(function(x){ return x !== k; });
+        save(); render(); openGenCatalog(); toast('Модуль «' + KNAME[k] + '» прибрано. Записи збережено — повернуться, якщо додати знову');
+      }, true);
+    });
+    pages.forEach(function(pg){ row(KICON.web, pg.t, host(pg.url), 'Налаштувати', '', function(){ openPageForm(pg, 'g'); }, true); });
+    openSheet('Загальні модулі', body);
   }
   function openModCatalog(pl){
     var body = el('div', {'class':'rows'});
@@ -901,7 +928,7 @@ a{color:var(--accent)}
   }
   function renderSide(v){
     var cr = $('commonRows'); cr.innerHTML = '';
-    KINDS.forEach(function(k){
+    genOn().forEach(function(k){
       var n = v.m === 'all' ? total(storeOf(k), st.p) : bucket(storeOf(k), st.p, v.m).length;
       var b = el('button', {'class':'srow','aria-pressed': String(v.kind === k)}, KICON[k] + '<span>' + KNAME[k] + '</span><span class="n">' + n + '</span>');
       b.onclick = function(){ setView(k, v.m); };
@@ -913,18 +940,21 @@ a{color:var(--accent)}
       b.onclick = function(){ setView(k, v.m); };
       box.appendChild(b);
     }
+    pagesOf('g').forEach(function(pg){ pageRow(pg, cr); });
+    if (v.m === 'all') {
+      var addG = el('button', {'class':'srow','style':'border:1px dashed var(--line);color:var(--accent);font-weight:600;margin-top:4px'}, '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true" style="color:var(--accent)"><path d="M12 5v14M5 12h14"/></svg><span>Додати модуль</span>');
+      addG.onclick = openGenCatalog;
+      cr.appendChild(addG);
+    }
     var lab = $('pluginLabel'), pr = $('pluginRows'); pr.innerHTML = '';
     if (v.m === 'all') {
       lab.innerHTML = 'Модулі плагінів';
       pr.appendChild(el('div', {'class':'shint'}, 'Оберіть плагін — відкриються його модулі'));
       st.mods[st.p].forEach(function(mi){
         var b = el('button', {'class':'srow'}, '<i style="width:8px;height:8px;border-radius:2px;display:block;flex:none;background:'+M[mi].color+'"></i><span>' + M[mi].name + '</span><span class="n">' + (installed(mi).length + pagesOf(mi).length) + '</span>');
-        b.onclick = function(){ setView(isMod(v.kind) || isPage(v.kind) ? 'ideas' : v.kind, mi); };
+        b.onclick = function(){ setView(leaveKind(v.kind), mi); };
         pr.appendChild(b);
       });
-      var addAll = el('button', {'class':'srow','style':'border:1px dashed var(--line);color:var(--accent);font-weight:600;margin-top:4px'}, '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true" style="color:var(--accent)"><path d="M12 5v14M5 12h14"/></svg><span>Додати модуль</span>');
-      addAll.onclick = openModPicker;
-      pr.appendChild(addAll);
       return;
     }
     lab.innerHTML = '<i style="background:'+M[v.m].color+'"></i>Модулі · ' + esc(M[v.m].name);
