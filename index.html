@@ -356,7 +356,7 @@ a{color:var(--accent)}
   <div id="shBody"></div>
 </div>
 
-<div class="ver mono">ескіз v2 · 18.10 19:15 · демо-дані · зміни зберігаються лише у вашому браузері</div>
+<div class="ver mono">ескіз v2 · 18.10 20:00 · дошки очищено · зміни зберігаються лише у вашому браузері</div>
 
 <script>
 (function(){
@@ -583,6 +583,8 @@ a{color:var(--accent)}
   }
   // general modules switched on per project (ideas / notes / tasks); general web pages = st.wp with plugin 'g'
   if (!st.gen) st.gen = {};
+  // 18.10: all boards cleared on request — every record (ideas, notes, tasks, instructions, plugin modules, extra boards) is emptied once; structure stays
+  if (!st.cleared1) { st.ideas = {}; st.notes = {}; st.tasks = []; st.instr = []; st.md = {}; st.gx = {}; st.instrDemo = 1; st.cleared1 = 1; }
   // demo instruction with a public, published Notion page (added once, also for saved states)
   if (!st.instrDemo) {
     st.instr = st.instr || [];
