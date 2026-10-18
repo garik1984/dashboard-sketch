@@ -564,6 +564,16 @@ a{color:var(--accent)}
   function pagesOf(pl){ st.wp[st.p] = st.wp[st.p] || []; return st.wp[st.p].filter(function(x){ return x.plugin === pl; }); }
   function pageById(id){ return (st.wp[st.p] || []).filter(function(x){ return x.id === id; })[0]; }
   function isPage(kind){ return kind && kind.indexOf('page:') === 0; }
+  // repair a saved view left by older sketch versions (e.g. kind 'web'), or one pointing to a removed module/page
+  (function(){
+    var v = st.view || {}, k = v.kind, ok = k === 'ideas' || k === 'notes' || k === 'tasks';
+    var plugs = st.mods[st.p] || [];
+    if (v.m !== 'all' && plugs.indexOf(v.m) < 0) v.m = 'all';
+    if (isPage(k)) ok = !!(st.wp[st.p] || []).filter(function(x){ return x.id === k.slice(5); })[0];
+    if (isMod(k)) ok = v.m !== 'all';
+    if (!ok) { v.kind = 'ideas'; }
+    st.view = {kind:v.kind, m:v.m};
+  })();
   function storeOf(k){ if (isMod(k)) { var id = k.slice(4); return st.md[id] || (st.md[id] = {}); } return st[k]; }
   function KL(kind){
     if (K[kind]) return K[kind];
