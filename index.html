@@ -707,6 +707,7 @@ a{color:var(--accent)}
       c.onclick = function(){ setView(k, v.m); };
       mo.appendChild(c);
     }
+    if (v.m === 'all') { var addA = el('button', {'class':'chip add','aria-label':'Додати модуль'}, '+ модуль'); addA.onclick = openModPicker; mo.appendChild(addA); }
     if (v.m !== 'all') {
       mo.appendChild(el('span', {'class':'sep','aria-hidden':'true'}));
       pagesOf(v.m).forEach(pageChip);
@@ -839,6 +840,18 @@ a{color:var(--accent)}
     }
     openSheet(pg ? 'Веб-сторінка · налаштування' : 'Новий модуль · Веб-сторінка · ' + M[pl].name, body);
   }
+  // «Усі плагіни»: modules belong to a plugin, so pick the plugin first
+  function openModPicker(){
+    var body = el('div', {'class':'rows'});
+    body.appendChild(el('p', {'style':'margin:0 0 6px;font-size:14px;line-height:1.5;color:var(--muted)'}, 'Модуль належить плагіну. Оберіть, у який плагін його додати:'));
+    st.mods[st.p].forEach(function(mi){
+      var avail = catalog(mi).length - installed(mi).length;
+      var b = el('button', {'class':'rowbtn'}, '<i style="width:10px;height:10px;border-radius:3px;display:block;flex:none;background:' + M[mi].color + '"></i><span style="flex:1;min-width:0">' + M[mi].name + '<small style="display:block;color:var(--faint);font-size:13px;margin-top:2px">' + (installed(mi).length + pagesOf(mi).length) + ' модулів · ще ' + avail + ' в каталозі + веб-сторінка</small></span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="color:var(--faint);flex:none"><path d="M9 6l6 6-6 6"/></svg>');
+      b.onclick = function(){ openModCatalog(mi); };
+      body.appendChild(b);
+    });
+    openSheet('Додати модуль', body);
+  }
   function openModCatalog(pl){
     var body = el('div', {'class':'rows'});
     var ids = installed(pl).map(function(d){ return d.id; });
@@ -899,6 +912,9 @@ a{color:var(--accent)}
         b.onclick = function(){ setView(isMod(v.kind) || isPage(v.kind) ? 'ideas' : v.kind, mi); };
         pr.appendChild(b);
       });
+      var addAll = el('button', {'class':'srow','style':'border:1px dashed var(--line);color:var(--accent);font-weight:600;margin-top:4px'}, '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true" style="color:var(--accent)"><path d="M12 5v14M5 12h14"/></svg><span>Додати модуль</span>');
+      addAll.onclick = openModPicker;
+      pr.appendChild(addAll);
       return;
     }
     lab.innerHTML = '<i style="background:'+M[v.m].color+'"></i>Модулі · ' + esc(M[v.m].name);
