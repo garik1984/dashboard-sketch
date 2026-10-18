@@ -356,7 +356,7 @@ a{color:var(--accent)}
   <div id="shBody"></div>
 </div>
 
-<div class="ver mono">ескіз v2 · 18.10 20:00 · дошки очищено · зміни зберігаються лише у вашому браузері</div>
+<div class="ver mono">ескіз v2 · 18.10 20:40 · зміни зберігаються лише у вашому браузері</div>
 
 <script>
 (function(){
@@ -1258,7 +1258,7 @@ a{color:var(--accent)}
         svcs.appendChild(a);
       } else {
         var b = el('button', {'class':'svc empty','title':'Додати: ' + SVC[key].hint}, '+ ' + SVC[key].label);
-        b.onclick = function(){ openForm({kind:kind, e:e}, key); };
+        b.onclick = key === 'chat' ? function(){ openChatChoice(kind, e); } : function(){ openForm({kind:kind, e:e}, key); };
         svcs.appendChild(b);
       }
     });
@@ -1357,6 +1357,70 @@ a{color:var(--accent)}
   }
 
   var toastT;
+  // ── «+ Чат»: paste a link, or start a new chat in the Claude project linked to this dashboard project
+  function chatRow(icon, title, sub, fn){
+    var b = el('button', {'class':'rowbtn'}, icon + '<span style="flex:1;min-width:0"><b style="font-weight:600">' + title + '</b><small style="display:block;color:var(--faint);font-size:13px;margin-top:2px">' + sub + '</small></span>');
+    b.onclick = fn; return b;
+  }
+  function openChatChoice(kind, e){
+    var body = el('div', {'class':'rows'}), proj = (st.cproj || {})[st.p];
+    body.appendChild(chatRow(LINK_ICON, 'Вставити посилання', 'Чат уже є — вставте його адресу', function(){ openForm({kind:kind, e:e}, 'chat'); }));
+    body.appendChild(chatRow(CHAT_ICON, 'Новий чат у проєкті Claude', proj ? esc(host(proj) + new URL(proj).pathname.slice(0, 24)) + '… · опис картки скопіюється' : 'Спершу вкажіть проєкт Claude для «' + esc(P[st.p].name) + '»', function(){ proj ? startNewChat(kind, e) : openProjectSetup(function(){ startNewChat(kind, e); }); }));
+    if (proj) { var ch = el('button', {'class':'ghost','style':'margin-top:6px;width:100%'}, 'Змінити проєкт Claude'); ch.onclick = function(){ openProjectSetup(function(){ openChatChoice(kind, e); }); }; body.appendChild(ch); }
+    openSheet('Чат · ' + e.c.t, body);
+  }
+  function openProjectSetup(then){
+    var body = el('div');
+    body.appendChild(el('p', {'style':'margin:0 0 12px;font-size:14px;line-height:1.5;color:var(--muted)'}, 'Проєкт Claude для «' + esc(P[st.p].name) + '». Відкрийте проєкт на claude.ai і скопіюйте адресу: <span class="mono">claude.ai/project/…</span>'));
+    var u = el('input', {'class':'inp','type':'url','inputmode':'url','autocapitalize':'off','spellcheck':'false','placeholder':'https://claude.ai/project/…','aria-label':'Посилання на проєкт Claude'});
+    u.value = (st.cproj || {})[st.p] || '';
+    var ok = el('button', {'class':'primary'}, 'Зберегти');
+    ok.onclick = function(){
+      var v = normSvc(u.value, 'chat');
+      if (!v) { u.classList.add('bad'); toast('Потрібне посилання claude.ai на проєкт'); return; }
+      st.cproj = st.cproj || {}; st.cproj[st.p] = v; save(); toast('Проєкт Claude збережено'); then && then();
+    };
+    body.appendChild(u); body.appendChild(ok);
+    openSheet('Проєкт Claude', body);
+  }
+  function startNewChat(kind, e){
+    var c = e.c, store = bucket(storeOf(kind), st.p, e.mi);
+    var brief = KL(kind).one + ': ' + c.t + (c.b ? '\n' + c.b : '') + '\nПлагін: ' + modName(e.mi);
+    try { navigator.clipboard && navigator.clipboard.writeText(brief); } catch(err){}
+    st.pendingChat = {p:st.p, kind:kind, mi:e.mi, i:store.indexOf(c), t:c.t, at:Date.now()}; save();
+    closeSheet();
+    window.open(st.cproj[st.p], '_blank', 'noopener');
+    toast('Опис картки скопійовано — вставте в новий чат');
+  }
+  // when the viewer comes back from Claude, offer to attach the new chat to the card
+  function pendingTarget(){
+    var pc = st.pendingChat; if (!pc || Date.now() - pc.at > 12 * 3600e3) return null;
+    var list = ((storeOf(pc.kind) || {})[pc.p] || {})[pc.mi] || [];
+    var c = list[pc.i] && list[pc.i].t === pc.t ? list[pc.i] : list.filter(function(x){ return x.t === pc.t; })[0];
+    return c ? {c:c, pc:pc} : null;
+  }
+  function offerPendingChat(){
+    var tg = pendingTarget(); if (!tg) { if (st.pendingChat) { delete st.pendingChat; save(); } return; }
+    if ($('sheet').classList.contains('open')) return;
+    var body = el('div');
+    body.appendChild(el('p', {'style':'margin:0 0 12px;font-size:14px;line-height:1.5;color:var(--muted)'}, 'Скопіюйте посилання на новий чат у Claude і вставте сюди — воно додасться до картки «' + esc(tg.c.t) + '».'));
+    var u = el('input', {'class':'inp','type':'url','inputmode':'url','autocapitalize':'off','spellcheck':'false','placeholder':'https://claude.ai/chat/…','aria-label':'Посилання на чат'});
+    var paste = el('button', {'class':'ghost','style':'width:100%;margin-top:8px'}, 'Вставити з буфера');
+    paste.onclick = function(){ if (!navigator.clipboard || !navigator.clipboard.readText) { u.focus(); return; } navigator.clipboard.readText().then(function(t){ u.value = t; }).catch(function(){ u.focus(); toast('Вставте вручну: утримуйте поле → Вставити'); }); };
+    var ok = el('button', {'class':'primary'}, 'Додати чат до картки');
+    ok.onclick = function(){
+      var v = normSvc(u.value, 'chat');
+      if (!v) { u.classList.add('bad'); toast('Потрібне посилання claude.ai'); return; }
+      tg.c.chat = v; delete st.pendingChat; save(); closeSheet(); render(); toast('Чат додано до картки');
+    };
+    var later = el('button', {'class':'ghost','style':'width:100%;margin-top:8px'}, 'Не зараз');
+    later.onclick = function(){ delete st.pendingChat; save(); closeSheet(); };
+    body.appendChild(u); body.appendChild(paste); body.appendChild(ok); body.appendChild(later);
+    openSheet('Додати новий чат', body);
+  }
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) setTimeout(offerPendingChat, 300); });
+  window.addEventListener('focus', function(){ setTimeout(offerPendingChat, 300); });
+  setTimeout(offerPendingChat, 600);
   function toast(msg){
     var t = $('toast'); if (!t){ t = el('div', {'id':'toast','role':'status','style':'position:fixed;left:50%;top:calc(16px + env(safe-area-inset-top));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 16px;border-radius:12px;font-size:14px;z-index:60;max-width:calc(100vw - 32px);box-shadow:0 10px 30px rgba(0,0,0,.25)'}); document.body.appendChild(t); }
     t.textContent = msg; t.style.display = 'block'; clearTimeout(toastT); toastT = setTimeout(function(){ t.style.display = 'none'; }, 2200);
